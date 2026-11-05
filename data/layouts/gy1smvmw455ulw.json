@@ -9,7 +9,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1793919180596,
- "updatedAt": 1793919390397,
+ "updatedAt": 1793919391692,
  "steps": [
   {
    "id": "ce867imw455ulx",
@@ -21,8 +21,8 @@
    "log": []
   },
   {
-   "id": "c4xrkvmw455ulx",
-   "name": "EBL patterning",
+   "id": "e8rwj6mw459zc6",
+   "name": "Layout",
    "state": "pending",
    "note": "",
    "by": null,
@@ -30,8 +30,8 @@
    "log": []
   },
   {
-   "id": "e8rwj6mw459zc6",
-   "name": "Layout",
+   "id": "c4xrkvmw455ulx",
+   "name": "EBL patterning",
    "state": "pending",
    "note": "",
    "by": null,
