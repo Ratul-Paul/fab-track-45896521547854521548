@@ -1,0 +1,151 @@
+{
+ "id": "gy1smvmw455ulw",
+ "name": "MZI",
+ "type": "active",
+ "status": "planned",
+ "purpose": "MZI Test",
+ "workers": [
+  "Ratul-Paul"
+ ],
+ "createdBy": "Ratul-Paul",
+ "createdAt": 1793919180596,
+ "updatedAt": 1793919180596,
+ "steps": [
+  {
+   "id": "ce867imw455ulx",
+   "name": "Spin coating",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "c4xrkvmw455ulx",
+   "name": "EBL patterning",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "oyvsolmw455ulx",
+   "name": "Development",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "dluhmzmw455ulx",
+   "name": "Etching",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "8prr6omw455ulx",
+   "name": "Redeposition removal",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "bphieimw455ulx",
+   "name": "Metal layer overlay patterning",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "m0fn0xmw455ulx",
+   "name": "Metal deposition",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "nqaawqmw455ulx",
+   "name": "Liftoff",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "xcseb8mw455ulx",
+   "name": "PECVD oxide",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "hyf0xzmw455ulx",
+   "name": "2nd metal layer / routing",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "83qn43mw455ulx",
+   "name": "BOE window opening",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "q7lkhumw455ulx",
+   "name": "Deep trench patterning",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "y2tr75mw455ulx",
+   "name": "Deep trench etching",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "xfwa0cmw455ulx",
+   "name": "Dicing",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "9ukms3mw455ulx",
+   "name": "Polishing",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  }
+ ],
+ "files": []
+}
