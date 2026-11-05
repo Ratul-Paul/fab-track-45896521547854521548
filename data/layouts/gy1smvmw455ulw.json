@@ -9,11 +9,11 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1793919180596,
- "updatedAt": 1793919391692,
+ "updatedAt": 1793919392295,
  "steps": [
   {
-   "id": "ce867imw455ulx",
-   "name": "Spin coating",
+   "id": "e8rwj6mw459zc6",
+   "name": "Layout",
    "state": "pending",
    "note": "",
    "by": null,
@@ -21,8 +21,8 @@
    "log": []
   },
   {
-   "id": "e8rwj6mw459zc6",
-   "name": "Layout",
+   "id": "ce867imw455ulx",
+   "name": "Spin coating",
    "state": "pending",
    "note": "",
    "by": null,
