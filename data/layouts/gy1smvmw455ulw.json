@@ -9,7 +9,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1793919180596,
- "updatedAt": 1793919180596,
+ "updatedAt": 1793919280341,
  "steps": [
   {
    "id": "ce867imw455ulx",
@@ -147,5 +147,17 @@
    "log": []
   }
  ],
- "files": []
+ "files": [
+  {
+   "id": "pgnws0mw457zkl",
+   "name": "wustl.box.com/s/edrcqa55sdc0mp0i5xiqop9ym6atzr87",
+   "kind": "gds",
+   "stepId": "",
+   "source": "link",
+   "url": "https://wustl.box.com/s/edrcqa55sdc0mp0i5xiqop9ym6atzr87",
+   "note": "",
+   "by": "Ratul-Paul",
+   "at": 1793919280341
+  }
+ ]
 }
