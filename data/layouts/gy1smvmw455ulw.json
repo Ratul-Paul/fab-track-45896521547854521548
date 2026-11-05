@@ -9,7 +9,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1793919180596,
- "updatedAt": 1793919547186,
+ "updatedAt": 1793919547536,
  "steps": [
   {
    "id": "e8rwj6mw459zc6",
@@ -30,11 +30,18 @@
   {
    "id": "ce867imw455ulx",
    "name": "Spin coating",
-   "state": "pending",
+   "state": "pass",
    "note": "",
-   "by": null,
-   "at": null,
-   "log": []
+   "by": "Ratul-Paul",
+   "at": 1793919547536,
+   "log": [
+    {
+     "by": "Ratul-Paul",
+     "at": 1793919547536,
+     "state": "pass",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "c4xrkvmw455ulx",
