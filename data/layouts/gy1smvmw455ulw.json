@@ -9,7 +9,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1793919180596,
- "updatedAt": 1793973158598,
+ "updatedAt": 1793973163783,
  "steps": [
   {
    "id": "e8rwj6mw459zc6",
@@ -46,10 +46,10 @@
   {
    "id": "c4xrkvmw455ulx",
    "name": "EBL patterning",
-   "state": "pass",
+   "state": "fail",
    "note": "Alignment does not work",
    "by": "Ratul-Paul",
-   "at": 1793973158598,
+   "at": 1793973163783,
    "log": [
     {
      "by": "Ratul-Paul",
@@ -62,6 +62,12 @@
      "at": 1793973158598,
      "state": "pass",
      "note": "Alignment does not work"
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1793973163783,
+     "state": "fail",
+     "note": ""
     }
    ]
   },
