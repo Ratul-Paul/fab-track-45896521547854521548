@@ -52,7 +52,31 @@ have to paste their token.
 Follow `js/vendor/README.txt` to put the open-source kwasm viewer script at `js/vendor/kwasm.js`
 (or point `kwasmUrl` in `js/config.js` at a CDN copy). Uploaded `.gds` files then get a
 **View layout** button that opens them in a pop-up inside the site. Files that are only
-Box or Drive links can't be viewed in the pop-up and still open in a new tab.
+Box or Drive links can't be viewed in the pop-up (Box and Drive don't let other websites read
+their files) and still open in a new tab. For those, download the file and use **Open GDS file**
+(overview page) or **view it from your computer** (Files tab) to view it without uploading.
+
+### 5. View GDS files from Google Drive (optional)
+Drive lets a web page download a file shared as "Anyone with the link", using a free API key.
+1. Go to https://console.cloud.google.com, create a project, and enable **Google Drive API**
+   (APIs & Services > Library).
+2. **APIs & Services > Credentials > Create credentials > API key.**
+3. Edit the key. Under *Application restrictions* choose **Websites** and add
+   `https://YOUR-USERNAME.github.io/*`. Under *API restrictions* choose **Restrict key** and select
+   only **Google Drive API**. The key is visible in the site's code, so these restrictions matter.
+4. Paste the key into `googleApiKey` in `js/config.js` and commit.
+5. In Drive, share each GDS: **Share > General access > Anyone with the link > Viewer**.
+   (Some university Google accounts block this. A personal Google account works.)
+6. In the tracker, attach the Drive link as a **GDS layout** link. It then shows **View layout**.
+   You can also use **Open from Drive** on the overview page for a one-off look.
+
+### Large GDS files (over 25 MB)
+GitHub blocks single files over 100 MiB in a normal repo, and the tracker uploads up to 25 MB.
+GDS files usually compress well, so compress first and upload the `.gds.gz`:
+- Mac or Linux: `gzip -k mylayout.gds` creates `mylayout.gds.gz`.
+- Windows: 7-Zip, Add to archive, format **gzip**.
+The **View layout** button unpacks `.gz` files in the browser automatically. If a compressed file is
+still over 25 MB, use **Open GDS file** (it accepts `.gds` and `.gds.gz`, with no size limit).
 
 ## Using it
 - **New layout**: name, passive or active, purpose, status (Planned, Ready, In fab, Done), people.
