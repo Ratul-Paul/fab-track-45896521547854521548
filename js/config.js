@@ -12,5 +12,8 @@ window.FAB_CONFIG = {
   dataDir: 'data',
   // Where the GDS viewer script lives. Default is the copy you add to js/vendor/.
   // You may instead paste a CDN address for kwasm here.
-  kwasmUrl: 'js/vendor/kwasm.js'
+  kwasmUrl: 'js/vendor/kwasm.js',
+  // Optional: Google API key (Drive API only) so GDS files shared on Google Drive as
+  // "Anyone with the link" can be viewed in the browser. See the README.
+  googleApiKey: ''
 };

@@ -322,6 +322,8 @@ function viewOverview(){
     <div class="seg" role="group" aria-label="Filter by type">
       ${[['all','All'],['passive','Passive'],['active','Active']].map(([v, l]) => `<button data-act="typefilter" data-v="${v}" aria-pressed="${S.type === v}">${l}</button>`).join('')}
     </div>
+    <button class="btn" data-act="openlocal" title="View a GDS file from your computer without uploading it">Open GDS file</button>
+    <button class="btn" data-act="opendrive" title="View a GDS file from a Google Drive link">Open from Drive</button>
     ${S.L.length ? '<button class="btn" data-act="export">Export CSV</button>' : ''}
     <button class="btn ghost" data-act="refresh" title="Fetch the latest from GitHub">Refresh</button>
   </div>
@@ -382,7 +384,7 @@ function fileCard(l, f){
       <div class="fm">${kind} · ${esc(stepLabel(l, f))}${f.source === 'link' ? ' · Link' : ''}${f.size ? ' · ' + (f.size / 1048576 >= 1 ? (f.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(f.size / 1024)) + ' KB') : ''}</div>
       ${f.note ? `<div class="fm">${esc(f.note)}</div>` : ''}
       <div class="fm">${who(f.by)} · ${fmt(f.at)}</div>
-      <div class="fm">${f.source === 'link' ? `<a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">Open link</a>` : `${isGds(f) ? `<button class="btn primary" data-act="viewgds" data-path="${esc(f.path)}" data-name="${esc(f.name)}">View layout</button> ` : ''}<a href="#" data-act="download" data-path="${esc(f.path)}" data-name="${esc(f.name)}">Download</a>`}</div></div>
+      <div class="fm">${f.source === 'link' ? `${isDriveGds(f) ? `<button class="btn primary" data-act="viewdrive" data-url="${esc(f.url)}" data-name="${esc(f.name)}">View layout</button> ` : ''}<a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">Open link</a>` : `${isGds(f) ? `<button class="btn primary" data-act="viewgds" data-path="${esc(f.path)}" data-name="${esc(f.name)}">View layout</button> ` : ''}<a href="#" data-act="download" data-path="${esc(f.path)}" data-name="${esc(f.name)}">Download</a>`}</div></div>
     ${S.canWrite ? `<button class="btn danger ${S.armed === 'f' + f.id ? 'armed' : ''}" data-act="delfile" data-id="${f.id}">${S.armed === 'f' + f.id ? 'Click again to remove' : 'Remove'}</button>` : ''}
   </div>`;
 }
@@ -397,6 +399,7 @@ function tabFiles(l){
     <h3>Add files</h3>
     <p class="hint" style="margin:0 0 10px">Choose what the data is, then upload it or link it from Box or Google Drive.</p>
     <div class="kindbtns">${KINDS.map(([k, t]) => `<button class="btn" data-act="attach" data-kind="${k}" data-step="${stepAttr}">${ico('clip')} ${t}</button>`).join('')}</div>
+    <p class="hint">Large GDS file on Box? Download it, then <button class="btn" data-act="openlocal">view it from your computer</button> without uploading.</p>
   </div>` : '';
   const filt = `<div class="filt"><div class="seg" role="group" aria-label="Filter by file type">
       <button data-act="kindfilter" data-v="all" aria-pressed="${S.kindFilter === 'all'}">All (${files.length})</button>
@@ -533,7 +536,7 @@ function openAttach(lid, stepId, kind){
     <label>Source<select id="at-src"><option value="upload">Upload from this computer</option><option value="link">Link from Box or Google Drive</option></select></label>
     <div id="at-up">
       <label>Files<input type="file" id="at-file" multiple></label>
-      <p class="note-s">Saved in the data repository <b>${esc(S.cfg.owner + '/' + S.cfg.repo)}</b> under <b>${esc(dataDir())}/files/&lt;layout&gt;/&lt;type&gt;/</b>, up to 25 MB each. For bigger GDS files, keep them in Box or Google Drive and add a link instead.</p>
+      <p class="note-s">Saved in the data repository <b>${esc(S.cfg.owner + '/' + S.cfg.repo)}</b> under <b>${esc(dataDir())}/files/&lt;layout&gt;/&lt;type&gt;/</b>, up to 25 MB each. Large GDS files: compress them to <b>.gds.gz</b> first (they usually shrink a lot); the viewer unpacks them automatically.</p>
     </div>
     <div id="at-ln" hidden>
       <label>Link<input class="txt" id="at-url" placeholder="https://…" inputmode="url"></label>
@@ -551,7 +554,7 @@ function fileB64(f){
   });
 }
 /* ---------- built-in GDS viewer (kwasm, KLayout compiled to WebAssembly) ---------- */
-const isGds = f => f.source === 'repo' && /\.(gds|gdsii)$/i.test(f.name);
+const isGds = f => f.source === 'repo' && /\.(gds|gdsii)(\.gz)?$/i.test(f.name);
 function loadKwasm(){
   if (window.Kwasm) return Promise.resolve();
   if (!S.kw) S.kw = new Promise((res, rej) => {
@@ -563,21 +566,58 @@ function loadKwasm(){
   });
   return S.kw;
 }
-async function openViewer(path, name){
+function driveId(url){
+  const m = String(url || '').match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:[^#]*&)?id=)([A-Za-z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+const isDriveGds = f => f.source === 'link' && driveId(f.url) && (f.kind === 'gds' || /\.(gds|gdsii)(\.gz)?$/i.test(f.name));
+async function fetchDriveBlob(id){
+  const key = CFG.googleApiKey;
+  if (!key) throw new Error('no-key');
+  const r = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media&key=${encodeURIComponent(key)}`);
+  if (!r.ok){ const e = new Error('drive'); e.status = r.status; throw e; }
+  return r.blob();
+}
+async function gunzipIfNeeded(blob){
+  const head = new Uint8Array(await blob.slice(0, 2).arrayBuffer());
+  if (head[0] !== 0x1f || head[1] !== 0x8b) return blob;
+  if (typeof DecompressionStream === 'undefined') throw new Error('no-gunzip');
+  return new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).blob();
+}
+async function openViewer(name, source){
+  const isPath = typeof source === 'string';
   openModal(`<h2>${esc(name)}</h2><div id="gds-view" class="gdsview">Loading the layout…</div>
-    <div class="acts"><button class="btn" data-act="download" data-path="${esc(path)}" data-name="${esc(name)}">Download</button><button class="btn primary" data-act="closemodal">Close</button></div>`, 'vw');
+    <div class="acts">${isPath ? `<button class="btn" data-act="download" data-path="${esc(source)}" data-name="${esc(name)}">Download</button>` : ''}<button class="btn primary" data-act="closemodal">Close</button></div>`, 'vw');
   try {
     await loadKwasm();
-    const b64 = await fileB64(await GH.getBlob(path));
+    const blob = isPath ? await GH.getBlob(source) : (source.drive ? await fetchDriveBlob(source.drive) : source);
+    const b64 = await fileB64(await gunzipIfNeeded(blob));
     const host = $('#gds-view'); if (!host) return;
     host.textContent = '';
     S.viewer = window.Kwasm.mount(host, {viewerId:'layout', gds:b64});
   } catch (e){
-    const host = $('#gds-view');
-    if (host) host.textContent = e.message === 'viewer-missing'
-      ? 'The viewer file is missing. Add kwasm.js to js/vendor/ (see js/vendor/README.txt).'
-      : 'Couldn’t open this layout (' + errText(e) + ').';
+    const host = $('#gds-view'); if (!host) return;
+    host.textContent =
+      e.message === 'viewer-missing' ? 'The viewer file is missing. Add kwasm.js to js/vendor/ (see js/vendor/README.txt).' :
+      e.message === 'no-gunzip' ? 'This browser can’t unpack .gz files. Use a recent Chrome, Edge, Firefox or Safari.' :
+      e.message === 'no-key' ? 'Google Drive viewing needs a Google API key. Add it as googleApiKey in js/config.js (see the README).' :
+      e.message === 'drive' && (e.status === 403 || e.status === 404) ? 'Google refused the file (' + e.status + '). Check that it is shared as “Anyone with the link”, and that the Drive API is enabled for your key.' :
+      e.message === 'drive' ? 'Google Drive returned an error (' + e.status + ').' :
+      e instanceof TypeError ? 'The browser couldn’t reach the file. Check your connection and that the key allows this website.' :
+      'Couldn’t open this layout (' + errText(e) + ').';
   }
+}
+function openDriveLink(){
+  openModal(`<h2>Open from Google Drive</h2>
+    <label>Drive link<input class="txt" id="dr-url" placeholder="https://drive.google.com/file/d/…" inputmode="url"></label>
+    <p class="note-s">The file must be shared as “Anyone with the link”. The link is only used to view it, nothing is saved.</p>
+    <div class="acts"><button class="btn" data-act="closemodal">Cancel</button><button class="btn primary" data-act="drivego">View layout</button></div>`);
+}
+function pickLocalGds(){
+  const i = document.createElement('input');
+  i.type = 'file'; i.accept = '.gds,.gdsii,.gz';
+  i.onchange = () => { if (i.files[0]) openViewer(i.files[0].name, i.files[0]); };
+  i.click();
 }
 async function doAttach(lid){
   const kind = $('#at-kind').value, stepId = $('#at-step').value, src = $('#at-src').value, note = $('#at-note').value.trim();
@@ -594,7 +634,7 @@ async function doAttach(lid){
       const list = [...$('#at-file').files];
       if (!list.length){ toast('Choose a file first.'); btn.disabled = false; return; }
       const big = list.find(f => f.size > MAX_UPLOAD);
-      if (big){ toast(big.name + ' is over 25 MB. Keep it in Box or Google Drive and add a link instead.'); btn.disabled = false; return; }
+      if (big){ toast(big.name + ' is over 25 MB. For a GDS, compress it to .gds.gz first, or use Open GDS file.'); btn.disabled = false; return; }
       for (let i = 0; i < list.length; i++){
         btn.textContent = `Uploading ${i + 1} of ${list.length}…`;
         const f = list[i], fid = rid();
@@ -715,7 +755,11 @@ document.addEventListener('click', e => {
     case 'delfile': arm('f' + id, () => removeFile(lid, id)); break;
     case 'dellayout': arm('l' + id, () => deleteLayout(id)); break;
     case 'download': downloadRepoFile(t.dataset.path, t.dataset.name); break;
-    case 'viewgds': openViewer(t.dataset.path, t.dataset.name); break;
+    case 'viewgds': openViewer(t.dataset.name, t.dataset.path); break;
+    case 'openlocal': pickLocalGds(); break;
+    case 'viewdrive': openViewer(t.dataset.name, {drive: driveId(t.dataset.url)}); break;
+    case 'opendrive': openDriveLink(); break;
+    case 'drivego': { const id = driveId($('#dr-url').value); if (!id){ toast('Paste a Google Drive file link (drive.google.com/file/d/…).'); break; } closeModal(); openViewer('Google Drive file', {drive:id}); break; }
     case 'lightbox':
       openModal(`<img alt="${esc(t.dataset.name)}"><div class="acts"><span class="who" style="margin-right:auto">${esc(t.dataset.name)}</span><button class="btn" data-act="closemodal">Close</button></div>`, 'lb');
       blobUrl(t.dataset.path).then(u => { const im = modal.querySelector('.lb img'); if (im) im.src = u; });
