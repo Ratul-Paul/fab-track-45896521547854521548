@@ -1,7 +1,7 @@
 {
  "id": "gy1smvmw455ulw",
  "name": "MZI",
- "type": "active",
+ "type": "passive",
  "status": "planned",
  "purpose": "MZI Test",
  "workers": [
@@ -9,7 +9,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1793919180596,
- "updatedAt": 1793919548604,
+ "updatedAt": 1793970578002,
  "steps": [
   {
    "id": "e8rwj6mw459zc6",
