@@ -9,7 +9,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1793919180596,
- "updatedAt": 1793973169324,
+ "updatedAt": 1793973169744,
  "steps": [
   {
    "id": "e8rwj6mw459zc6",
@@ -96,15 +96,21 @@
   {
    "id": "dluhmzmw455ulx",
    "name": "Etching",
-   "state": "pass",
+   "state": "pending",
    "note": "",
    "by": "Ratul-Paul",
-   "at": 1793919548604,
+   "at": 1793973169744,
    "log": [
     {
      "by": "Ratul-Paul",
      "at": 1793919548604,
      "state": "pass",
+     "note": ""
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1793973169744,
+     "state": "pending",
      "note": ""
     }
    ]
