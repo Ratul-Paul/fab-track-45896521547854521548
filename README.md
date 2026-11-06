@@ -16,7 +16,7 @@ fab-tracker/            <- this folder, the website (public repo is fine, it has
 
 fab-data/               <- the private repo the app creates files in
   data/layouts/<id>.json   one file per layout (steps, notes, history, file list)
-  data/files/<id>/...      uploaded SEM / microscope / small GDS files
+  data/files/<id>/<type>/  uploads, sorted into gds / sem / scope / other folders
   data/presets.json        the shared quick-add step list
 ```
 
@@ -48,12 +48,19 @@ tracker knows who made each update. To sign out, use the button in the top right
 Optional: put the repo name in `js/config.js` (`dataRepo: 'my-lab/fab-data'`) so people only
 have to paste their token.
 
+### 4. Add the GDS viewer (optional, 2 minutes)
+Follow `js/vendor/README.txt` to put the open-source kwasm viewer script at `js/vendor/kwasm.js`
+(or point `kwasmUrl` in `js/config.js` at a CDN copy). Uploaded `.gds` files then get a
+**View layout** button that opens them in a pop-up inside the site. Files that are only
+Box or Drive links can't be viewed in the pop-up and still open in a new tab.
+
 ## Using it
 - **New layout**: name, passive or active, purpose, status (Planned, Ready, In fab, Done), people.
 - **Steps**: add with the box or the quick-add chips, as many times as you like. Tick, cross,
   add a note, reorder, rename, or delete. Click a step to open its note and history.
-- **Files**: attach images, GDS and other files up to 25 MB, or link larger files from Box or
-  Google Drive. Images show as thumbnails.
+- **Files**: on a layout's Files tab, pick the type (GDS layout, SEM image, microscope image or
+  other), then upload (up to 25 MB) or link a Box or Google Drive file. Files are grouped by type,
+  can be filtered, and can be tied to a specific step. Images show as thumbnails.
 - Changes by other people appear within 30 seconds, or press **Refresh**.
 - **Export CSV** on the overview page.
 

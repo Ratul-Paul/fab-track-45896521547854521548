@@ -9,5 +9,8 @@
 window.FAB_CONFIG = {
   dataRepo: '',      // e.g. 'my-lab/fab-data'
   branch: '',
-  dataDir: 'data'
+  dataDir: 'data',
+  // Where the GDS viewer script lives. Default is the copy you add to js/vendor/.
+  // You may instead paste a CDN address for kwasm here.
+  kwasmUrl: 'js/vendor/kwasm.js'
 };

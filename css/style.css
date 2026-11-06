@@ -233,3 +233,11 @@ textarea.txt{width:100%;resize:vertical;display:block}
 .addp{display:flex;gap:6px;align-items:center}
 .addp .txt{width:190px}
 
+
+.addfiles{background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.addfiles h3{margin:0 0 2px;font-size:16px}
+.kindbtns{display:flex;flex-wrap:wrap;gap:8px}
+.filt .seg{flex-wrap:wrap}
+.dlg.vw{width:min(1280px,100%);padding:14px}
+.gdsview{height:min(74vh,820px);border:1px solid var(--line);border-radius:8px;overflow:hidden;display:grid;place-items:center;color:var(--muted);background:var(--surface);text-align:center;padding:0}
+.gdsview:not(:empty)>*{max-width:100%}

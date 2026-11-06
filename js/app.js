@@ -29,7 +29,7 @@ const S = {
   cfg:null, me:null, canWrite:true, mode:'boot', err:'', setupErr:'',
   srv:{}, pend:{}, queue:{}, busy:{}, L:[], byId:{},
   presets:[], presetsSha:null, loaded:false, syncing:false, lastSync:0,
-  q:'', type:'all', tab:'process', open:{}, fileStep:'', armed:null,
+  q:'', type:'all', kindFilter:'all', tab:'process', open:{}, fileStep:'', armed:null,
   down:false, dirty:false, blobs:{}
 };
 const $ = s => document.querySelector(s);
@@ -373,25 +373,45 @@ function stepLabel(l, f){
   if (!f.stepId) return 'Whole layout';
   const s = stepOf(l, f.stepId); return s ? s.name : 'Deleted step';
 }
+function fileCard(l, f){
+  const isImg = f.source === 'repo' && /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(f.name);
+  const kind = (KINDS.find(k => k[0] === (f.kind || 'other')) || KINDS[3])[1];
+  return `<div class="file">
+    ${isImg ? `<button class="thumb" data-act="lightbox" data-path="${esc(f.path)}" data-name="${esc(f.name)}" aria-label="View ${esc(f.name)}"><img data-path="${esc(f.path)}" alt="${esc(f.name)}"></button>` : `<div class="thumb">${esc((f.kind || 'file').toUpperCase().slice(0, 4))}</div>`}
+    <div><div class="fn">${esc(f.name)}</div>
+      <div class="fm">${kind} · ${esc(stepLabel(l, f))}${f.source === 'link' ? ' · Link' : ''}${f.size ? ' · ' + (f.size / 1048576 >= 1 ? (f.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(f.size / 1024)) + ' KB') : ''}</div>
+      ${f.note ? `<div class="fm">${esc(f.note)}</div>` : ''}
+      <div class="fm">${who(f.by)} · ${fmt(f.at)}</div>
+      <div class="fm">${f.source === 'link' ? `<a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">Open link</a>` : `${isGds(f) ? `<button class="btn primary" data-act="viewgds" data-path="${esc(f.path)}" data-name="${esc(f.name)}">View layout</button> ` : ''}<a href="#" data-act="download" data-path="${esc(f.path)}" data-name="${esc(f.name)}">Download</a>`}</div></div>
+    ${S.canWrite ? `<button class="btn danger ${S.armed === 'f' + f.id ? 'armed' : ''}" data-act="delfile" data-id="${f.id}">${S.armed === 'f' + f.id ? 'Click again to remove' : 'Remove'}</button>` : ''}
+  </div>`;
+}
 function tabFiles(l){
   let files = l.files.slice().sort((a, b) => (b.at || 0) - (a.at || 0));
   const filtered = S.fileStep && stepOf(l, S.fileStep);
   if (filtered) files = files.filter(f => f.stepId === S.fileStep);
-  return `<div class="filt">${S.canWrite ? `<button class="btn primary" data-act="attach" data-step="${filtered ? S.fileStep : ''}">${ico('clip')} Attach file</button>` : ''}
-    ${filtered ? `<span class="who">Showing files for ${esc(stepOf(l, S.fileStep).name)}</span><button class="btn ghost" data-act="clearstepfilter">Show all</button>` : ''}</div>
-  ${files.length ? `<div class="files">${files.map(f => {
-    const isImg = f.source === 'repo' && /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(f.name);
-    const kind = (KINDS.find(k => k[0] === f.kind) || KINDS[3])[1];
-    return `<div class="file">
-      ${isImg ? `<button class="thumb" data-act="lightbox" data-path="${esc(f.path)}" data-name="${esc(f.name)}" aria-label="View ${esc(f.name)}"><img data-path="${esc(f.path)}" alt="${esc(f.name)}"></button>` : `<div class="thumb">${esc((f.kind || 'file').toUpperCase().slice(0, 4))}</div>`}
-      <div><div class="fn">${esc(f.name)}</div>
-        <div class="fm">${kind} · ${esc(stepLabel(l, f))}${f.source === 'link' ? ' · Link' : ''}${f.size ? ' · ' + (f.size / 1048576 >= 1 ? (f.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(f.size / 1024)) + ' KB') : ''}</div>
-        ${f.note ? `<div class="fm">${esc(f.note)}</div>` : ''}
-        <div class="fm">${who(f.by)} · ${fmt(f.at)}</div>
-        <div class="fm">${f.source === 'link' ? `<a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">Open link</a>` : `<a href="#" data-act="download" data-path="${esc(f.path)}" data-name="${esc(f.name)}">Download</a>`}</div></div>
-      ${S.canWrite ? `<button class="btn danger ${S.armed === 'f' + f.id ? 'armed' : ''}" data-act="delfile" data-id="${f.id}">${S.armed === 'f' + f.id ? 'Click again to remove' : 'Remove'}</button>` : ''}
-    </div>`;
-  }).join('')}</div>` : `<div class="empty"><strong>${filtered ? 'No files on this step' : 'No files yet'}</strong>Attach SEM and microscope images, GDS files, or link large files from Box or Google Drive.</div>`}`;
+  const kindOf = f => f.kind || 'other';
+  const count = k => files.filter(f => kindOf(f) === k).length;
+  const stepAttr = filtered ? S.fileStep : '';
+  const adder = S.canWrite ? `<div class="addfiles">
+    <h3>Add files</h3>
+    <p class="hint" style="margin:0 0 10px">Choose what the data is, then upload it or link it from Box or Google Drive.</p>
+    <div class="kindbtns">${KINDS.map(([k, t]) => `<button class="btn" data-act="attach" data-kind="${k}" data-step="${stepAttr}">${ico('clip')} ${t}</button>`).join('')}</div>
+  </div>` : '';
+  const filt = `<div class="filt"><div class="seg" role="group" aria-label="Filter by file type">
+      <button data-act="kindfilter" data-v="all" aria-pressed="${S.kindFilter === 'all'}">All (${files.length})</button>
+      ${KINDS.map(([k, t]) => `<button data-act="kindfilter" data-v="${k}" aria-pressed="${S.kindFilter === k}">${t} (${count(k)})</button>`).join('')}
+    </div>
+    ${filtered ? `<span class="who">Only files for ${esc(stepOf(l, S.fileStep).name)}</span><button class="btn ghost" data-act="clearstepfilter">Show all steps</button>` : ''}</div>`;
+  let body;
+  if (!files.length) body = `<div class="empty"><strong>${filtered ? 'No files on this step' : 'No files yet'}</strong>Use the buttons above to add GDS layouts, SEM images, microscope images or other data.</div>`;
+  else if (S.kindFilter !== 'all'){
+    const list = files.filter(f => kindOf(f) === S.kindFilter);
+    body = list.length ? `<div class="files">${list.map(f => fileCard(l, f)).join('')}</div>` : '<div class="empty"><strong>Nothing of this type yet</strong></div>';
+  } else {
+    body = KINDS.map(([k, t]) => { const list = files.filter(f => kindOf(f) === k); return list.length ? `<section class="group"><h2>${t} <span>${list.length}</span></h2><div class="files">${list.map(f => fileCard(l, f)).join('')}</div></section>` : ''; }).join('');
+  }
+  return adder + filt + body;
 }
 function workersEditor(l, ro){
   const chips = l.workers.map((w, i) => ro ? who(w) : who(w, 'rmworker', `data-i="${i}"`)).join('');
@@ -474,7 +494,10 @@ async function downloadRepoFile(path, name){
 }
 
 /* ---------- modals ---------- */
-function closeModal(){ modal.innerHTML = ''; }
+function closeModal(){
+  if (S.viewer){ try { S.viewer.destroy(); } catch (_) {} S.viewer = null; }
+  modal.innerHTML = '';
+}
 function openModal(inner, cls){
   modal.innerHTML = `<div class="ov-bg" data-act="closebg"><div class="dlg ${cls || ''}" role="dialog" aria-modal="true">${inner}</div></div>`;
   const f = modal.querySelector('input,textarea,select'); if (f) f.focus();
@@ -502,15 +525,15 @@ async function createLayout(){
     closeModal(); S.tab = 'process'; location.hash = 'l-' + id; sched();
   } catch (e){ btn.disabled = false; toast('Couldn’t create the layout (' + errText(e) + ').'); }
 }
-function openAttach(lid, stepId){
+function openAttach(lid, stepId, kind){
   const l = S.byId[lid];
   openModal(`<h2>Attach a file</h2>
-    <label>What is it<select id="at-kind">${KINDS.map(([k, t]) => `<option value="${k}">${t}</option>`).join('')}</select></label>
+    <label>What is it<select id="at-kind">${KINDS.map(([k, t]) => `<option value="${k}" ${k === kind ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
     <label>Belongs to<select id="at-step"><option value="">Whole layout</option>${l.steps.map((s, i) => `<option value="${s.id}" ${s.id === stepId ? 'selected' : ''}>${i + 1}. ${esc(s.name)}</option>`).join('')}</select></label>
     <label>Source<select id="at-src"><option value="upload">Upload from this computer</option><option value="link">Link from Box or Google Drive</option></select></label>
     <div id="at-up">
       <label>Files<input type="file" id="at-file" multiple></label>
-      <p class="note-s">Uploads are saved in the data repository, up to 25 MB each. For bigger GDS files, keep them in Box or Google Drive and add a link instead.</p>
+      <p class="note-s">Saved in the data repository <b>${esc(S.cfg.owner + '/' + S.cfg.repo)}</b> under <b>${esc(dataDir())}/files/&lt;layout&gt;/&lt;type&gt;/</b>, up to 25 MB each. For bigger GDS files, keep them in Box or Google Drive and add a link instead.</p>
     </div>
     <div id="at-ln" hidden>
       <label>Link<input class="txt" id="at-url" placeholder="https://…" inputmode="url"></label>
@@ -526,6 +549,35 @@ function fileB64(f){
     r.onload = () => res(r.result.slice(r.result.indexOf(',') + 1));
     r.onerror = () => rej(r.error); r.readAsDataURL(f);
   });
+}
+/* ---------- built-in GDS viewer (kwasm, KLayout compiled to WebAssembly) ---------- */
+const isGds = f => f.source === 'repo' && /\.(gds|gdsii)$/i.test(f.name);
+function loadKwasm(){
+  if (window.Kwasm) return Promise.resolve();
+  if (!S.kw) S.kw = new Promise((res, rej) => {
+    const el = document.createElement('script');
+    el.src = CFG.kwasmUrl || 'js/vendor/kwasm.js';
+    el.onload = res;
+    el.onerror = () => { S.kw = null; rej(new Error('viewer-missing')); };
+    document.head.appendChild(el);
+  });
+  return S.kw;
+}
+async function openViewer(path, name){
+  openModal(`<h2>${esc(name)}</h2><div id="gds-view" class="gdsview">Loading the layout…</div>
+    <div class="acts"><button class="btn" data-act="download" data-path="${esc(path)}" data-name="${esc(name)}">Download</button><button class="btn primary" data-act="closemodal">Close</button></div>`, 'vw');
+  try {
+    await loadKwasm();
+    const b64 = await fileB64(await GH.getBlob(path));
+    const host = $('#gds-view'); if (!host) return;
+    host.textContent = '';
+    S.viewer = window.Kwasm.mount(host, {viewerId:'layout', gds:b64});
+  } catch (e){
+    const host = $('#gds-view');
+    if (host) host.textContent = e.message === 'viewer-missing'
+      ? 'The viewer file is missing. Add kwasm.js to js/vendor/ (see js/vendor/README.txt).'
+      : 'Couldn’t open this layout (' + errText(e) + ').';
+  }
 }
 async function doAttach(lid){
   const kind = $('#at-kind').value, stepId = $('#at-step').value, src = $('#at-src').value, note = $('#at-note').value.trim();
@@ -547,7 +599,7 @@ async function doAttach(lid){
         btn.textContent = `Uploading ${i + 1} of ${list.length}…`;
         const f = list[i], fid = rid();
         const safe = f.name.replace(/[^A-Za-z0-9._-]+/g, '_');
-        const path = `${dataDir()}/files/${lid}/${fid}-${safe}`;
+        const path = `${dataDir()}/files/${lid}/${kind}/${fid}-${safe}`;
         await GH.putBytes(path, await fileB64(f), `Add file ${f.name} [${me()}]`);
         const entry = {id:fid, name:f.name, kind, stepId, source:'repo', path, size:f.size, note, by:me(), at:Date.now()};
         await mutate(lid, d => { d.files.push(entry); }, `Attach ${f.name} (${l.name})`);
@@ -579,7 +631,7 @@ const up = () => { if (S.down){ S.down = false; setTimeout(flush, 60); } };
 document.addEventListener('pointerup', up, true);
 document.addEventListener('pointercancel', up, true);
 document.addEventListener('focusout', () => setTimeout(flush, 80));
-window.addEventListener('hashchange', () => { S.fileStep = ''; S.tab = 'process'; S.open = {}; sched(); window.scrollTo(0, 0); });
+window.addEventListener('hashchange', () => { S.fileStep = ''; S.kindFilter = 'all'; S.tab = 'process'; S.open = {}; sched(); window.scrollTo(0, 0); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
 setInterval(() => { if (!document.hidden) sync(); }, SYNC_MS);
 
@@ -655,13 +707,15 @@ document.addEventListener('click', e => {
     case 'addworker': { const i = $app.querySelector('[data-addworker]'); const v = i.value; i.value = ''; addWorker(lid, v); break; }
     case 'addme': addWorker(lid, me()); break;
     case 'rmworker': { const l = S.byId[lid], w = l.workers[+t.dataset.i]; mutate(lid, d => { d.workers = d.workers.filter(x => x !== w); }, `Remove ${w} from ${l.name}`); break; }
-    case 'attach': openAttach(lid, t.dataset.step || ''); break;
+    case 'attach': openAttach(lid, t.dataset.step || '', t.dataset.kind || ''); break;
+    case 'kindfilter': S.kindFilter = t.dataset.v; sched(); break;
     case 'doattach': doAttach(id); break;
     case 'stepfiles': e.stopPropagation(); S.fileStep = id; S.tab = 'files'; sched(); break;
     case 'clearstepfilter': S.fileStep = ''; sched(); break;
     case 'delfile': arm('f' + id, () => removeFile(lid, id)); break;
     case 'dellayout': arm('l' + id, () => deleteLayout(id)); break;
     case 'download': downloadRepoFile(t.dataset.path, t.dataset.name); break;
+    case 'viewgds': openViewer(t.dataset.path, t.dataset.name); break;
     case 'lightbox':
       openModal(`<img alt="${esc(t.dataset.name)}"><div class="acts"><span class="who" style="margin-right:auto">${esc(t.dataset.name)}</span><button class="btn" data-act="closemodal">Close</button></div>`, 'lb');
       blobUrl(t.dataset.path).then(u => { const im = modal.querySelector('.lb img'); if (im) im.src = u; });
