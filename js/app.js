@@ -536,7 +536,7 @@ function openAttach(lid, stepId, kind){
     <label>Source<select id="at-src"><option value="upload">Upload from this computer</option><option value="link">Link from Box or Google Drive</option></select></label>
     <div id="at-up">
       <label>Files<input type="file" id="at-file" multiple></label>
-      <p class="note-s">Saved in the data repository <b>${esc(S.cfg.owner + '/' + S.cfg.repo)}</b> under <b>${esc(dataDir())}/files/&lt;layout&gt;/&lt;type&gt;/</b>, up to 25 MB each. Large GDS files: compress them to <b>.gds.gz</b> first (they usually shrink a lot); the viewer unpacks them automatically.</p>
+      <p class="note-s">Saved in the data repository <b>${esc(S.cfg.owner + '/' + S.cfg.repo)}</b> under <b>${esc(dataDir())}/files/&lt;layout&gt;/&lt;type&gt;/</b>, up to 25 MB each. Large GDS files: compress them to <b>.zip</b> or <b>.gds.gz</b> first (they usually shrink a lot). Set the type to <b>GDS layout</b>; the viewer unpacks them automatically.</p>
     </div>
     <div id="at-ln" hidden>
       <label>Link<input class="txt" id="at-url" placeholder="https://…" inputmode="url"></label>
@@ -554,7 +554,7 @@ function fileB64(f){
   });
 }
 /* ---------- built-in GDS viewer (kwasm, KLayout compiled to WebAssembly) ---------- */
-const isGds = f => f.source === 'repo' && /\.(gds|gdsii)(\.gz)?$/i.test(f.name);
+const isGds = f => f.source === 'repo' && (/\.(gds|gdsii)(\.gz)?$/i.test(f.name) || (/\.zip$/i.test(f.name) && f.kind === 'gds'));
 function loadKwasm(){
   if (window.Kwasm) return Promise.resolve();
   if (!S.kw) S.kw = new Promise((res, rej) => {
@@ -578,11 +578,35 @@ async function fetchDriveBlob(id){
   if (!r.ok){ const e = new Error('drive'); e.status = r.status; throw e; }
   return r.blob();
 }
+async function unzipGds(blob){
+  const buf = new Uint8Array(await blob.arrayBuffer());
+  const dv = new DataView(buf.buffer);
+  let e = -1;
+  for (let i = buf.length - 22; i >= Math.max(0, buf.length - 65558); i--){ if (dv.getUint32(i, true) === 0x06054b50){ e = i; break; } }
+  if (e < 0) throw new Error('bad-zip');
+  const count = dv.getUint16(e + 10, true);
+  let p = dv.getUint32(e + 16, true);
+  for (let n = 0; n < count; n++){
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    const nlen = dv.getUint16(p + 28, true), elen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(buf.subarray(p + 46, p + 46 + nlen));
+    p += 46 + nlen + elen + clen;
+    if (!/\.(gds|gdsii)$/i.test(name) || name.startsWith('__MACOSX')) continue;
+    const start = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true);
+    const data = new Blob([buf.subarray(start, start + csize)]);
+    if (method === 0) return data;
+    if (method === 8) return new Response(data.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob();
+    throw new Error('bad-zip');
+  }
+  throw new Error('zip-nogds');
+}
 async function gunzipIfNeeded(blob){
-  const head = new Uint8Array(await blob.slice(0, 2).arrayBuffer());
-  if (head[0] !== 0x1f || head[1] !== 0x8b) return blob;
+  const h = new Uint8Array(await blob.slice(0, 4).arrayBuffer());
+  const isZip = h[0] === 0x50 && h[1] === 0x4b, isGz = h[0] === 0x1f && h[1] === 0x8b;
+  if (!isZip && !isGz) return blob;
   if (typeof DecompressionStream === 'undefined') throw new Error('no-gunzip');
-  return new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).blob();
+  return isZip ? unzipGds(blob) : new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).blob();
 }
 async function openViewer(name, source){
   const isPath = typeof source === 'string';
@@ -599,6 +623,8 @@ async function openViewer(name, source){
     const host = $('#gds-view'); if (!host) return;
     host.textContent =
       e.message === 'viewer-missing' ? 'The viewer file is missing. Add kwasm.js to js/vendor/ (see js/vendor/README.txt).' :
+      e.message === 'zip-nogds' ? 'No .gds file was found inside this zip.' :
+      e.message === 'bad-zip' ? 'Couldn’t read this zip. Try compressing the GDS again as a normal .zip or .gds.gz.' :
       e.message === 'no-gunzip' ? 'This browser can’t unpack .gz files. Use a recent Chrome, Edge, Firefox or Safari.' :
       e.message === 'no-key' ? 'Google Drive viewing needs a Google API key. Add it as googleApiKey in js/config.js (see the README).' :
       e.message === 'drive' && (e.status === 403 || e.status === 404) ? 'Google refused the file (' + e.status + '). Check that it is shared as “Anyone with the link”, and that the Drive API is enabled for your key.' :
@@ -615,7 +641,7 @@ function openDriveLink(){
 }
 function pickLocalGds(){
   const i = document.createElement('input');
-  i.type = 'file'; i.accept = '.gds,.gdsii,.gz';
+  i.type = 'file'; i.accept = '.gds,.gdsii,.gz,.zip';
   i.onchange = () => { if (i.files[0]) openViewer(i.files[0].name, i.files[0]); };
   i.click();
 }
@@ -634,7 +660,7 @@ async function doAttach(lid){
       const list = [...$('#at-file').files];
       if (!list.length){ toast('Choose a file first.'); btn.disabled = false; return; }
       const big = list.find(f => f.size > MAX_UPLOAD);
-      if (big){ toast(big.name + ' is over 25 MB. For a GDS, compress it to .gds.gz first, or use Open GDS file.'); btn.disabled = false; return; }
+      if (big){ toast(big.name + ' is over 25 MB. For a GDS, compress it to .zip or .gds.gz first, or use Open GDS file.'); btn.disabled = false; return; }
       for (let i = 0; i < list.length; i++){
         btn.textContent = `Uploading ${i + 1} of ${list.length}…`;
         const f = list[i], fid = rid();

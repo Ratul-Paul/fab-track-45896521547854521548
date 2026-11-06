@@ -72,10 +72,12 @@ Drive lets a web page download a file shared as "Anyone with the link", using a 
 
 ### Large GDS files (over 25 MB)
 GitHub blocks single files over 100 MiB in a normal repo, and the tracker uploads up to 25 MB.
-GDS files usually compress well, so compress first and upload the `.gds.gz`:
+GDS files usually compress well, so compress first and upload a `.zip` (containing one `.gds`) or a `.gds.gz`,
+with the type set to **GDS layout**:
 - Mac or Linux: `gzip -k mylayout.gds` creates `mylayout.gds.gz`.
-- Windows: 7-Zip, Add to archive, format **gzip**.
-The **View layout** button unpacks `.gz` files in the browser automatically. If a compressed file is
+- Windows or Mac: right-click the file and choose Compress / Send to compressed folder, to get a `.zip`.
+  (Or 7-Zip with format **gzip**.)
+The **View layout** button unpacks `.zip` and `.gz` files in the browser automatically. If a compressed file is
 still over 25 MB, use **Open GDS file** (it accepts `.gds` and `.gds.gz`, with no size limit).
 
 ## Using it
