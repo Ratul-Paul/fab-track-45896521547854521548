@@ -2,6 +2,7 @@
 'use strict';
 
 const CFG = window.FAB_CONFIG || {};
+const BUILD = '2026-11-06-4';
 const LS_KEY = 'fabtracker.v1';
 const MAX_UPLOAD = 25 * 1024 * 1024;
 const SYNC_MS = 30000;
@@ -21,6 +22,9 @@ const ICO = {
   down:'<path d="M8 3v10M3.5 8.5L8 13l4.5-4.5"/>',
   plus:'<path d="M8 3v10M3 8h10"/>',
   back:'<path d="M10 3L5 8l5 5"/>',
+  eye:'<path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/>',
+  download:'<path d="M8 2.5v7M4.8 6.8L8 10l3.2-3.2M3 13h10"/>',
+  external:'<path d="M9 3h4v4M13 3L7.5 8.5M11 9.5V13H3V5h3.5"/>',
   clip:'<path d="M13 7.5l-5 5a3 3 0 01-4.2-4.2l5.5-5.5a2 2 0 012.9 2.9L6.7 11.2a1 1 0 01-1.4-1.4L10 5.1"/>'
 };
 const ico = n => `<svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[n]}</svg>`;
@@ -384,8 +388,10 @@ function fileCard(l, f){
       <div class="fm">${kind} · ${esc(stepLabel(l, f))}${f.source === 'link' ? ' · Link' : ''}${f.size ? ' · ' + (f.size / 1048576 >= 1 ? (f.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(f.size / 1024)) + ' KB') : ''}</div>
       ${f.note ? `<div class="fm">${esc(f.note)}</div>` : ''}
       <div class="fm">${who(f.by)} · ${fmt(f.at)}</div>
-      <div class="fm">${f.source === 'link' ? `${isDriveGds(f) ? `<button class="btn primary" data-act="viewdrive" data-url="${esc(f.url)}" data-name="${esc(f.name)}">View layout</button> ` : ''}<a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">Open link</a>` : `${isGds(f) ? `<button class="btn primary" data-act="viewgds" data-path="${esc(f.path)}" data-name="${esc(f.name)}">View layout</button> ` : ''}<a href="#" data-act="download" data-path="${esc(f.path)}" data-name="${esc(f.name)}">Download</a>`}</div></div>
-    ${S.canWrite ? `<button class="btn danger ${S.armed === 'f' + f.id ? 'armed' : ''}" data-act="delfile" data-id="${f.id}">${S.armed === 'f' + f.id ? 'Click again to remove' : 'Remove'}</button>` : ''}
+      <div class="fa">${f.source === 'link'
+        ? `${isDriveGds(f) ? `<button class="btn primary sm" data-act="viewdrive" data-url="${esc(f.url)}" data-name="${esc(f.name)}">${ico('eye')} View layout</button>` : ''}<a class="btn sm" href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${ico('external')} Open link</a>`
+        : `${isGds(f) ? `<button class="btn primary sm" data-act="viewgds" data-path="${esc(f.path)}" data-name="${esc(f.name)}">${ico('eye')} View layout</button>` : ''}<button class="btn sm" data-act="download" data-path="${esc(f.path)}" data-name="${esc(f.name)}">${ico('download')} Download</button>`}</div></div>
+    ${S.canWrite ? `<button class="btn ghost sm danger ${S.armed === 'f' + f.id ? 'armed' : ''}" data-act="delfile" data-id="${f.id}">${S.armed === 'f' + f.id ? 'Click again to remove' : 'Remove'}</button>` : ''}
   </div>`;
 }
 function tabFiles(l){
@@ -470,6 +476,7 @@ function render(){
     const r = route();
     html = (S.canWrite ? '' : '<div class="banner">You have read-only access to this repository, so you can’t update steps.</div>') + (r ? viewDetail(r) : viewOverview());
   }
+  if (S.mode === 'app' && S.loaded) html += `<footer class="ver">Fab tracker, build ${BUILD}</footer>`;
   $app.innerHTML = html;
   if (live){
     const el = $app.querySelector(`[data-live="${live}"]`);
@@ -611,7 +618,7 @@ async function gunzipIfNeeded(blob){
 async function openViewer(name, source){
   const isPath = typeof source === 'string';
   openModal(`<h2>${esc(name)}</h2><div id="gds-view" class="gdsview">Loading the layout…</div>
-    <div class="acts">${isPath ? `<button class="btn" data-act="download" data-path="${esc(source)}" data-name="${esc(name)}">Download</button>` : ''}<button class="btn primary" data-act="closemodal">Close</button></div>`, 'vw');
+    <div class="acts">${isPath ? `<button class="btn" data-act="download" data-path="${esc(source)}" data-name="${esc(name)}">${ico('download')} Download</button>` : ''}<button class="btn primary" data-act="closemodal">Close</button></div>`, 'vw');
   try {
     await loadKwasm();
     const blob = isPath ? await GH.getBlob(source) : (source.drive ? await fetchDriveBlob(source.drive) : source);

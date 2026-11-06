@@ -241,3 +241,15 @@ textarea.txt{width:100%;resize:vertical;display:block}
 .dlg.vw{width:min(1280px,100%);padding:14px}
 .gdsview{height:min(74vh,820px);border:1px solid var(--line);border-radius:8px;overflow:hidden;display:grid;place-items:center;color:var(--muted);background:var(--surface);text-align:center;padding:0}
 .gdsview:not(:empty)>*{max-width:100%}
+.ver{margin-top:40px;font-size:12px;color:var(--faint);text-align:center}
+
+/* file card actions */
+.fa{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn.sm{padding:5px 11px;font-size:13px;border-radius:7px;text-decoration:none;color:var(--ink)}
+.btn.sm .ico{width:14px;height:14px}
+.btn.primary.sm{color:var(--accent-ink)}
+.btn.ghost.sm.danger{color:var(--faint)}
+.btn.ghost.sm.danger:hover{color:var(--fail);border-color:var(--fail)}
+.btn.ghost.sm.danger.armed{background:var(--fail);color:#fff;border-color:var(--fail)}
+.file .fm a.btn{color:var(--ink)}
+.file{align-items:start}
