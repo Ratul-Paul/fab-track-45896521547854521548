@@ -9,7 +9,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1793919180596,
- "updatedAt": 1793972866423,
+ "updatedAt": 1793972883569,
  "steps": [
   {
    "id": "e8rwj6mw459zc6",
@@ -202,6 +202,18 @@
    "note": "",
    "by": "Ratul-Paul",
    "at": 1793919280341
+  },
+  {
+   "id": "79hky9mw514nuf",
+   "name": "UPENN_202608_Chip_active_ large_PC_20260827 (1).zip",
+   "kind": "gds",
+   "stepId": "",
+   "source": "repo",
+   "path": "data/files/gy1smvmw455ulw/gds/79hky9mw514nuf-UPENN_202608_Chip_active__large_PC_20260827_1_.zip",
+   "size": 24332788,
+   "note": "",
+   "by": "Ratul-Paul",
+   "at": 1793972883569
   }
  ]
 }
