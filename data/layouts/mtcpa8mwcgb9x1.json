@@ -2,7 +2,7 @@
  "id": "mtcpa8mwcgb9x1",
  "name": "Full 5 MZI + Individual MZI + Electrode Distance Sweep (UPenn Metal Layer)",
  "type": "active",
- "status": "planned",
+ "status": "infab",
  "purpose": "",
  "tags": [
   "Full Laser and passive",
@@ -14,7 +14,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794421638901,
- "updatedAt": 1794421638901,
+ "updatedAt": 1794421649438,
  "dates": {},
  "steps": [
   {
