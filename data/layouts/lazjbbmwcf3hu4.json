@@ -14,7 +14,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794419596300,
- "updatedAt": 1794419769177,
+ "updatedAt": 1794419773605,
  "steps": [
   {
    "id": "hmyb6gmwcf3hu4",
@@ -56,14 +56,21 @@
   {
    "id": "o90wq3mwcf3hu4",
    "name": "Development",
-   "state": "pending",
+   "state": "fail",
    "note": "",
    "recipe": "",
    "started": "",
    "issues": [],
-   "by": null,
-   "at": null,
-   "log": []
+   "by": "Ratul-Paul",
+   "at": 1794419773605,
+   "log": [
+    {
+     "by": "Ratul-Paul",
+     "at": 1794419773605,
+     "state": "fail",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "1uk72bmwcf3hu4",
