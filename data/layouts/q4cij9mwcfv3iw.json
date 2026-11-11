@@ -15,7 +15,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794420884120,
- "updatedAt": 1794421348263,
+ "updatedAt": 1794421371679,
  "steps": [
   {
    "id": "3qprvumwcg0qha",
@@ -58,12 +58,12 @@
    "id": "qdj69hmwcg1s3m",
    "name": "Etching",
    "state": "pending",
-   "note": "",
+   "note": "400 W ICP, 60 W Bias, 5 mTorr, 12 SCCM Ar. ",
    "recipe": "RP AR P Etch Strike 2",
    "started": "2026-09-25",
    "issues": [],
    "by": "Ratul-Paul",
-   "at": 1794421348263,
+   "at": 1794421371679,
    "log": [
     {
      "by": "Ratul-Paul",
@@ -76,6 +76,12 @@
      "at": 1794421348263,
      "state": "pending",
      "note": "Recipe: RP AR P Etch Strike 2"
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794421371679,
+     "state": "pending",
+     "note": "400 W ICP, 60 W Bias, 5 mTorr, 12 SCCM Ar. "
     }
    ]
   }
