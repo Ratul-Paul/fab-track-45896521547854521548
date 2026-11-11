@@ -5,7 +5,7 @@
  "version": "1",
  "status": "active",
  "tools": "",
- "body": "Clean chip:\n\n1. 5 min 75C Acetone with ultrasound\n2. 5 min IPA with ultrasound\n3. DI water flow\n4. Blow dry\n5. Bake at 100C for 5 min\n6. Cool down.\n\nSpin coat:\n\n1. No spreading step \n2. 3000 rpm with 3000 acceleration\n3. Spin coat for 60 sec\n4. 0 rpm in 5 seconds\n\nBake:\n100 C for 1 min.\n\nDischarge:\n1. Cool down for 1 min\n2. Dispense Discharge H2O (make sure there is no bubble and cover the entire chip)\n3. No spreading step\n4. 3000 rpm with 5000 acceleration\n5. 0 rpm in 5 sec\n",
+ "body": "Clean chip:\n\n1. 5 min 75C Acetone with ultrasound\n2. 5 min IPA with ultrasound\n3. DI water flow\n4. Blow dry\n5. Bake at 100C for 5 min\n6. Cool down.\n\nSpin coat:\n\n1. No spreading step \n2. 3000 rpm with 3000 acceleration\n3. Spin coat for 60 sec\n4. 0 rpm in 5 seconds\n\nBake:\n100 C for 1 min.\n\nDischarge:\n1. Cool down for 1 min\n2. Dispense Discharge H2O (make sure there is no bubble and cover the entire chip)\n3. No spreading step\n4. 3000 rpm with 5000 acceleration\n5. 0 rpm in 5 sec\n\nResults:\n100 nm after coating and 85 nm after baking \n",
  "files": [],
  "issues": [],
  "history": [
@@ -38,9 +38,14 @@
    "by": "Ratul-Paul",
    "at": 1794423269972,
    "note": "Edited parameters"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794423306863,
+   "note": "Edited parameters"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794422539199,
- "updatedAt": 1794423269972
+ "updatedAt": 1794423306863
 }
