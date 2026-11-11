@@ -14,7 +14,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794419596300,
- "updatedAt": 1794419624161,
+ "updatedAt": 1794419668701,
  "steps": [
   {
    "id": "tqeqpjmwcf3hu4",
@@ -197,6 +197,19 @@
    "log": []
   }
  ],
- "files": [],
+ "files": [
+  {
+   "id": "ycu6memwcf4zne",
+   "name": "LN_MZI_101526_base_v3_2_with_alignment.gds",
+   "kind": "gds",
+   "stepId": "",
+   "source": "repo",
+   "path": "data/files/lazjbbmwcf3hu4/gds/ycu6memwcf4zne-LN_MZI_101526_base_v3_2_with_alignment.gds",
+   "size": 4344932,
+   "note": "",
+   "by": "Ratul-Paul",
+   "at": 1794419668701
+  }
+ ],
  "results": []
 }
