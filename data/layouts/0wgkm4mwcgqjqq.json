@@ -10,12 +10,12 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794422351474,
- "updatedAt": 1794422590040,
+ "updatedAt": 1794422592113,
  "steps": [
   {
    "id": "4dbonpmwcguw5w",
    "name": "Spin coating",
-   "state": "fail",
+   "state": "pass",
    "note": "",
    "recipe": "HSQ Spin Coating",
    "recipeId": "jov1qgmwcguklb",
@@ -23,7 +23,7 @@
    "started": "",
    "issues": [],
    "by": "Ratul-Paul",
-   "at": 1794422590040,
+   "at": 1794422592113,
    "log": [
     {
      "by": "Ratul-Paul",
@@ -41,6 +41,12 @@
      "by": "Ratul-Paul",
      "at": 1794422590040,
      "state": "fail",
+     "note": ""
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794422592113,
+     "state": "pass",
      "note": ""
     }
    ]
