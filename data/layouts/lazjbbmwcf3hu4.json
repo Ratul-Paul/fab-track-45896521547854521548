@@ -1,0 +1,200 @@
+{
+ "id": "lazjbbmwcf3hu4",
+ "name": "Full 5 MZI + Individual MZI + Electrode Distance Sweep",
+ "type": "active",
+ "status": "planned",
+ "purpose": "",
+ "tags": [
+  "Full Laser and passive"
+ ],
+ "workers": [
+  "Ratul-Paul"
+ ],
+ "createdBy": "Ratul-Paul",
+ "createdAt": 1794419596300,
+ "updatedAt": 1794419596300,
+ "steps": [
+  {
+   "id": "tqeqpjmwcf3hu4",
+   "name": "Spin coating",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "hmyb6gmwcf3hu4",
+   "name": "EBL patterning",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "o90wq3mwcf3hu4",
+   "name": "Development",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "1uk72bmwcf3hu4",
+   "name": "Etching",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "8te05rmwcf3hu4",
+   "name": "Redeposition removal",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "ri7rb8mwcf3hu4",
+   "name": "Metal layer overlay patterning",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "1mls5pmwcf3hu4",
+   "name": "Metal deposition",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "mehqsjmwcf3hu4",
+   "name": "Liftoff",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "b51hpumwcf3hu4",
+   "name": "PECVD oxide",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "4r7z62mwcf3hu4",
+   "name": "2nd metal layer / routing",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "rjxz42mwcf3hu4",
+   "name": "BOE window opening",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "fl9hjrmwcf3hu4",
+   "name": "Deep trench patterning",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "dmu9qfmwcf3hu4",
+   "name": "Deep trench etching",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "lnd5uomwcf3hu4",
+   "name": "Dicing",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "20jsmmmwcf3hu4",
+   "name": "Polishing",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  }
+ ],
+ "files": [],
+ "results": []
+}
