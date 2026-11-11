@@ -7,7 +7,7 @@
   branch    Leave empty to use the repo's default branch.
 */
 window.FAB_CONFIG = {
-  dataRepo: '',      // e.g. 'my-lab/fab-data'
+  dataRepo: '',      // e.g. 'my-lab/fab-data'  (set this once and teammates only need to paste a token)
   branch: '',
   dataDir: 'data',
   // Where the GDS viewer script lives. Default is the copy you add to js/vendor/.

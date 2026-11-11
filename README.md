@@ -16,7 +16,8 @@ fab-tracker/            <- this folder, the website (public repo is fine, it has
 
 fab-data/               <- the private repo the app creates files in
   data/layouts/<id>.json   one file per layout (steps, notes, history, file list)
-  data/files/<id>/<type>/  uploads, sorted into gds / sem / scope / other folders
+  data/files/<id>/<type>/  uploads, sorted into gds / dxf / design / sem / scope / other folders
+  data/files/<id>/results/ images added in the Results section
   data/presets.json        the shared quick-add step list
 ```
 
@@ -45,7 +46,7 @@ fab-data/               <- the private repo the app creates files in
 The token is stored only in that browser. Everyone uses their own token, which is how the
 tracker knows who made each update. To sign out, use the button in the top right.
 
-Optional: put the repo name in `js/config.js` (`dataRepo: 'my-lab/fab-data'`) so people only
+Easier for the team: put the repo name in `js/config.js` (`dataRepo: 'my-lab/fab-data'`) so people only
 have to paste their token.
 
 ### 4. Add the GDS viewer (optional, 2 minutes)
@@ -81,14 +82,31 @@ The **View layout** button unpacks `.zip` and `.gz` files in the browser automat
 still over 25 MB, use **Open GDS file** (it accepts `.gds` and `.gds.gz`, with no size limit).
 
 ## Using it
-- **New layout**: name, passive or active, purpose, status (Planned, Ready, In fab, Done), people.
-- **Steps**: add with the box or the quick-add chips, as many times as you like. Tick, cross,
-  add a note, reorder, rename, or delete. Click a step to open its note and history.
-- **Files**: on a layout's Files tab, pick the type (GDS layout, SEM image, microscope image or
-  other), then upload (up to 25 MB) or link a Box or Google Drive file. Files are grouped by type,
-  can be filtered, and can be tied to a specific step. Images show as thumbnails.
+Every layout has three sections, shown as tabs: **Design**, **Fab** and **Results**.
+
+- **Header**: name, passive or active, status (Planned, Ready, In fab, Measuring, Done), people,
+  purpose, and **tags**. Tags are free text (Full laser, Passive only, Deep trench, Cleaved, No PECVD
+  are suggested, and any tag you type is offered to everyone next time). On the overview page you can
+  filter by one or more tags.
+- **Design**: GDS, DXF and other design files. Upload them (up to 25 MB; zip or gzip big GDS files) or
+  link them from Box or Google Drive. Uploaded GDS files have a **View layout** button.
+- **Fab**: the process steps.
+  - Add steps with the box or the quick-add chips, as many times as you like. The optional date next
+    to the box sets the step's **start date** (you can also edit it later, or click Today).
+  - Tick or cross each step, and add a **note**.
+  - Click a step to open it: set the **recipe used**, add notes, **report issues** (each issue can be
+    marked resolved or reopened, and open issues show on the step and on the overview), reorder,
+    rename or delete it, and see its history of who changed what.
+  - Below the steps, **Process images and files** holds SEM images, microscope images and other files,
+    which you can tie to a step.
+- **Results**: a running report with four kinds of blocks, in any order.
+  - **Text**: write findings (supports `- bullets`, `# headings` and `**bold**`).
+  - **Image**: measurement photos or exported plots, with captions.
+  - **Table**: paste from Excel or CSV (first row = column names, up to 2,000 rows).
+  - **Plot**: pick a table, then line, scatter or bar, the X column, one or more Y columns and axis
+    labels. Download any plot as SVG. **Print report** gives a clean printout or PDF.
 - Changes by other people appear within 30 seconds, or press **Refresh**.
-- **Export CSV** on the overview page.
+- **Export CSV** on the overview page lists every step with tags, start date, recipe and open issues.
 
 ## Good to know
 - Two people editing the same layout at once is handled. The app re-reads the latest version
