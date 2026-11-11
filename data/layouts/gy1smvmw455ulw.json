@@ -9,7 +9,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1793919180596,
- "updatedAt": 1794412306565,
+ "updatedAt": 1794412392020,
  "steps": [
   {
    "id": "e8rwj6mw459zc6",
@@ -208,6 +208,15 @@
   {
    "id": "9ukms3mw455ulx",
    "name": "Polishing",
+   "state": "pending",
+   "note": "",
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "i18y3rmwcat2z8",
+   "name": "Spin coating",
    "state": "pending",
    "note": "",
    "by": null,
