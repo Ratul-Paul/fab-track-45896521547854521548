@@ -1,0 +1,22 @@
+{
+ "id": "q4cij9mwcfv3iw",
+ "name": "MMI and Delay Line Check",
+ "type": "passive",
+ "status": "ready",
+ "purpose": "",
+ "tags": [
+  "MMI Sweep",
+  "Passive",
+  "Deep trench",
+  "Dicing and polishing"
+ ],
+ "workers": [
+  "Ratul-Paul"
+ ],
+ "createdBy": "Ratul-Paul",
+ "createdAt": 1794420884120,
+ "updatedAt": 1794420884120,
+ "steps": [],
+ "files": [],
+ "results": []
+}
