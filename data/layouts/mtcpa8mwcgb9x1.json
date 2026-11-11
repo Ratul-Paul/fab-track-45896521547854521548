@@ -14,20 +14,27 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794421638901,
- "updatedAt": 1794421649438,
+ "updatedAt": 1794421652216,
  "dates": {},
  "steps": [
   {
    "id": "9uhxckmwcgb9x1",
    "name": "EBL patterning",
-   "state": "pending",
+   "state": "pass",
    "note": "EBL standard line follow protocol. 10% field overlap with 50% dose.\nNo issues detected.",
    "recipe": "HSQ 100 nm with DLC",
    "started": "",
    "issues": [],
-   "by": null,
-   "at": null,
-   "log": []
+   "by": "Ratul-Paul",
+   "at": 1794421652216,
+   "log": [
+    {
+     "by": "Ratul-Paul",
+     "at": 1794421652216,
+     "state": "pass",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "ebzoldmwcgb9x1",
