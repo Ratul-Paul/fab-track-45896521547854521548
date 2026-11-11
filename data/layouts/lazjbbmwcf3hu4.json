@@ -14,24 +14,30 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794419596300,
- "updatedAt": 1794419718146,
+ "updatedAt": 1794419726039,
  "steps": [
   {
    "id": "hmyb6gmwcf3hu4",
    "name": "EBL patterning",
    "state": "pending",
    "note": "",
-   "recipe": "",
+   "recipe": "HSQ 100 nm with DLC",
    "started": "2026-10-26",
    "issues": [],
    "by": "Ratul-Paul",
-   "at": 1794419718146,
+   "at": 1794419726039,
    "log": [
     {
      "by": "Ratul-Paul",
      "at": 1794419718146,
      "state": "pending",
      "note": "Started 2026-10-26"
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794419726039,
+     "state": "pending",
+     "note": "Recipe: HSQ 100 nm with DLC"
     }
    ]
   },
