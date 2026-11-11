@@ -1,0 +1,179 @@
+{
+ "id": "mtcpa8mwcgb9x1",
+ "name": "Full 5 MZI + Individual MZI + Electrode Distance Sweep (UPenn Metal Layer)",
+ "type": "active",
+ "status": "planned",
+ "purpose": "",
+ "tags": [
+  "Full Laser and passive",
+  "deep trench needed",
+  "dicing and polishing needed"
+ ],
+ "workers": [
+  "Ratul-Paul"
+ ],
+ "createdBy": "Ratul-Paul",
+ "createdAt": 1794421638901,
+ "updatedAt": 1794421638901,
+ "dates": {},
+ "steps": [
+  {
+   "id": "9uhxckmwcgb9x1",
+   "name": "EBL patterning",
+   "state": "pending",
+   "note": "EBL standard line follow protocol. 10% field overlap with 50% dose.\nNo issues detected.",
+   "recipe": "HSQ 100 nm with DLC",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "ebzoldmwcgb9x1",
+   "name": "Etching",
+   "state": "pending",
+   "note": "400 W ICP, 60 W Bias (200v), 5 mTorr pressure, 12 sccm Ar for 8.5 min (200 nm etch)\nNo issues. ",
+   "recipe": "RP Ar P Etch Strike 2",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "utn01dmwcgb9x1",
+   "name": "Redeposition removal",
+   "state": "pending",
+   "note": "RCA clean 2:2:2 Ammonium Hydroxide 20% + H2O2 + DI at 85C for 15 min\nNo issues ",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "34bmb5mwcgb9x1",
+   "name": "Metal layer overlay patterning",
+   "state": "pending",
+   "note": "Double Layer PMMA. 2000 RPM 495 and 2000 RPM 950. 650uC/cm2 with 10nA current and 5 nm BSS. \nPatterning and development was fine. ",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "aaxr65mwcgb9x1",
+   "name": "Metal deposition",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "yz4q28mwcgb9x1",
+   "name": "Liftoff",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "ps2xt5mwcgb9x1",
+   "name": "PECVD oxide",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "34f6ukmwcgb9x1",
+   "name": "2nd metal layer / routing",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "d7tw4vmwcgb9x1",
+   "name": "BOE window opening",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "4by1xkmwcgb9x1",
+   "name": "Deep trench patterning",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "57qwwomwcgb9x1",
+   "name": "Deep trench etching",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "fkya7rmwcgb9x1",
+   "name": "Dicing",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "mg82gimwcgb9x1",
+   "name": "Polishing",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  }
+ ],
+ "files": [],
+ "results": []
+}
