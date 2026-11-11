@@ -1,6 +1,6 @@
 {
  "id": "g79qrimwcp3zux",
- "name": "HSQ Spin Coating 100 nm (copy)",
+ "name": "HSQ 16% Spin Coating 100 nm",
  "process": "Spin coating",
  "version": "",
  "status": "draft",
@@ -13,9 +13,14 @@
    "by": "Ratul-Paul",
    "at": 1794436415817,
    "note": "Duplicated from HSQ Spin Coating 100 nm v1"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794436427778,
+   "note": "Edited name"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794436415817,
- "updatedAt": 1794436415817
+ "updatedAt": 1794436427778
 }
