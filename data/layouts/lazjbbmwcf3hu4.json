@@ -14,7 +14,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794419596300,
- "updatedAt": 1794419791121,
+ "updatedAt": 1794419803251,
  "steps": [
   {
    "id": "hmyb6gmwcf3hu4",
@@ -58,17 +58,23 @@
    "name": "Etching",
    "state": "pending",
    "note": "",
-   "recipe": "",
+   "recipe": "RP Ar P Etch Strike 2",
    "started": "2026-10-27",
    "issues": [],
    "by": "Ratul-Paul",
-   "at": 1794419791121,
+   "at": 1794419803251,
    "log": [
     {
      "by": "Ratul-Paul",
      "at": 1794419791121,
      "state": "pending",
      "note": "Started 2026-10-27"
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794419803251,
+     "state": "pending",
+     "note": "Recipe: RP Ar P Etch Strike 2"
     }
    ]
   },
