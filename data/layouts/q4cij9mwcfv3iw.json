@@ -15,7 +15,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794420884120,
- "updatedAt": 1794421505090,
+ "updatedAt": 1794421515912,
  "steps": [
   {
    "id": "3qprvumwcg0qha",
@@ -94,19 +94,25 @@
   {
    "id": "kubbrcmwcg67lp",
    "name": "Cleaning",
-   "state": "pending",
+   "state": "pass",
    "note": "",
    "recipe": "RCA 1",
    "started": "2026-09-26",
    "issues": [],
    "by": "Ratul-Paul",
-   "at": 1794421411817,
+   "at": 1794421515912,
    "log": [
     {
      "by": "Ratul-Paul",
      "at": 1794421411817,
      "state": "pending",
      "note": "Recipe: RCA 1"
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794421515912,
+     "state": "pass",
+     "note": ""
     }
    ]
   }
