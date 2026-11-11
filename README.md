@@ -18,6 +18,8 @@ fab-data/               <- the private repo the app creates files in
   data/layouts/<id>.json   one file per layout (steps, notes, history, file list)
   data/files/<id>/<type>/  uploads, sorted into gds / dxf / design / sem / scope / other folders
   data/files/<id>/results/ images added in the Results section
+  data/files/recipes/<id>/ files attached to recipes
+  data/recipes/<id>.json   one file per recipe (parameters, files list, issues, history)
   data/presets.json        the shared quick-add step list
 ```
 
@@ -88,6 +90,8 @@ Every layout has three sections, shown as tabs: **Design**, **Fab** and **Result
   purpose, and **tags**. Tags are free text (Full laser, Passive only, Deep trench, Cleaved, No PECVD
   are suggested, and any tag you type is offered to everyone next time). On the overview page you can
   filter by one or more tags.
+- **Overview rows** show name, tags, people and progress. A layout's description is on its own page (search still looks
+  inside it). Rows carry a faint tint: red when any step has an open issue, blue-grey while In fab, green when Done.
 - **Sort and group** (overview page): sort layouts by last updated, date created, name, Design start,
   Fab start, Fab finish or Measurement start. The arrow button reverses the order, and layouts without
   that date always go last. **Group** chooses between sections by status and one flat list. Your choice
@@ -109,9 +113,26 @@ Every layout has three sections, shown as tabs: **Design**, **Fab** and **Result
   - **Table**: paste from Excel or CSV (first row = column names, up to 2,000 rows).
   - **Plot**: pick a table, then line, scatter or bar, the X column, one or more Y columns and axis
     labels. Download any plot as SVG. **Print report** gives a clean printout or PDF.
+- **Recipe library** (the **Recipes** tab at the top): save your process recipes once and reuse them.
+  - Each recipe has a name, process (for example Etching), version, status (Active, Draft or Retired),
+    equipment, and **parameters and procedure** (text with `- bullets`, `# headings`, `**bold**`).
+  - Attach **files** (uploads up to 25 MB, or Box and Drive links), for example a recipe exported from the tool.
+  - A recipe can have its own **issues**, which you report and mark resolved or reopened, just like on a step.
+  - The page lists every **layout and step that uses the recipe**, and a **history** of who changed what.
+  - **Duplicate as a new version** makes a draft copy to edit. Mark the old one Retired.
+  - On any step, the **Recipe used** dropdown lists your recipes, with the ones matching the step's name
+    first. Choose **Custom** to type free text instead. A step using a recipe that has open issues shows a warning.
+  - Editing a recipe changes it for every step that uses it. To keep an earlier run's recipe unchanged,
+    duplicate it as a new version, edit the copy, and retire the old one.
 - **Section dates**: each of Design, Fab and Measurement (the Results tab) has **Started** and
   **Finished** dates at the top, with Today buttons and a day count. A timeline under the layout header
   shows all three, and the overview shows them in short form.
+- **Overdue**: give a section (Design, Fab, Measurement) or a single step a **time frame in days**. The start
+  date counts as day 1, so a 5-day time frame started on the 1st is due on the 5th and overdue from the 6th.
+  Anything that has a start date and a time frame, and is not finished, is labelled **Overdue by N days** in red.
+  Sections are finished when they have a finish date, and steps when they are ticked done or crossed. Overdue
+  shows on the step, in the section row and timeline, in the layout summary, and on the overview. The CSV export
+  has the time frames and an Overdue column. Duplicating a layout keeps its time frames but not its dates.
 - **Duplicate layout** (bottom of a layout page): makes a copy with the same type, purpose and tags.
   Choose whether to copy the steps (reset to not started), their recipes and notes, and linked design files.
   Uploaded files, results, issues, dates and history are not copied. The copy starts as Planned.

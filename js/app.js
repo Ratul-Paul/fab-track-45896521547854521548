@@ -2,7 +2,7 @@
 'use strict';
 
 const CFG = window.FAB_CONFIG || {};
-const BUILD = '2026-11-12-1';
+const BUILD = '2026-11-15-1';
 const LS_KEY = 'fabtracker.v1';
 const MAX_UPLOAD = 25 * 1024 * 1024;
 const SYNC_MS = 30000;
@@ -37,7 +37,7 @@ const S = {
   cfg:null, me:null, canWrite:true, mode:'boot', err:'', setupErr:'',
   srv:{}, pend:{}, queue:{}, busy:{}, L:[], byId:{},
   presets:[], presetsSha:null, loaded:false, syncing:false, lastSync:0,
-  q:'', type:'all', tagFilter:[], sortKey:'updated', sortDir:'desc', group:'status', editBlock:null, selMode:false, sel:[], kindFilter:'all', tab:'fab', open:{}, fileStep:'', armed:null,
+  q:'', type:'all', R:[], RBy:{}, recipeCustom:[], rq:'', rproc:'all', rstatus:'all', editRBody:false, tagFilter:[], sortKey:'updated', sortDir:'desc', group:'status', editBlock:null, selMode:false, sel:[], kindFilter:'all', tab:'fab', open:{}, fileStep:'', armed:null,
   down:false, dirty:false, blobs:{}
 };
 const $ = s => document.querySelector(s);
@@ -50,7 +50,12 @@ const fmt = ms => ms ? new Date(ms).toLocaleString(undefined, {month:'short', da
 const stateWord = s => s === 'pass' ? 'done' : s === 'fail' ? 'failed' : 'not started';
 const dataDir = () => (CFG.dataDir || 'data').replace(/\/$/, '');
 const layoutPath = id => `${dataDir()}/layouts/${id}.json`;
+const recipePath = id => `${dataDir()}/recipes/${id}.json`;
+const pathOf = key => key.startsWith('r~') ? recipePath(key.slice(2)) : layoutPath(key);
 const presetsPath = () => `${dataDir()}/presets.json`;
+const routeR = () => { const m = location.hash.match(/^#r-([A-Za-z0-9]+)$/); return m ? m[1] : null; };
+const isRecipes = () => location.hash === '#recipes';
+const RECIPE_STATUS = [['active','Active'],['draft','Draft'],['retired','Retired']];
 const route = () => { const m = location.hash.match(/^#l-([A-Za-z0-9]+)$/); return m ? m[1] : null; };
 
 function toast(msg){
@@ -87,11 +92,12 @@ function allTags(){
   return [...m.values()];
 }
 function rebuild(){
-  S.L = [];
+  S.L = []; S.R = [];
   for (const id in S.srv){
     let d = S.srv[id].data;
     const p = S.pend[id];
     if (p && p.length){ d = clone(d); p.forEach(x => x.fn(d)); }
+    if (id.startsWith('r~')){ d.id = id.slice(2); d.issues = d.issues || []; d.files = d.files || []; d.history = d.history || []; S.R.push(d); continue; }
     d.id = id; d.steps = d.steps || []; d.files = d.files || []; d.workers = d.workers || [];
     d.tags = d.tags || []; d.results = d.results || []; d.dates = d.dates || {};
     d.steps.forEach(s => { s.issues = s.issues || []; });
@@ -99,6 +105,7 @@ function rebuild(){
   }
   S.L.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   S.byId = {}; S.L.forEach(l => { S.byId[l.id] = l; });
+  S.R.sort((a, b) => (a.name || '').localeCompare(b.name || '')); S.RBy = {}; S.R.forEach(r => { S.RBy[r.id] = r; });
 }
 function stats(l){
   return {total:l.steps.length, pass:l.steps.filter(s => s.state === 'pass').length, fail:l.steps.filter(s => s.state === 'fail').length};
@@ -127,12 +134,12 @@ async function commit(id, p, message){
       if (!base) throw Object.assign(new Error('missing'), {status:404});
       const next = clone(base.data); p.fn(next);
       try {
-        const r = await GH.putJson(layoutPath(id), next, base.sha, `${message} [${S.me.login}]`);
+        const r = await GH.putJson(pathOf(id), next, base.sha, `${message} [${S.me.login}]`);
         S.srv[id] = {data:next, sha:r.sha};
         break;
       } catch (e){
         if ((e.status === 409 || e.status === 422) && attempt < 3){
-          const fresh = await GH.getJson(layoutPath(id));
+          const fresh = await GH.getJson(pathOf(id));
           if (fresh) S.srv[id] = fresh; else throw e;
           continue;
         }
@@ -141,7 +148,7 @@ async function commit(id, p, message){
     }
   } catch (e){
     toast('Couldn’t save that change (' + errText(e) + '). Reloading the latest data.');
-    try { const fresh = await GH.getJson(layoutPath(id)); if (fresh) S.srv[id] = fresh; } catch (_) {}
+    try { const fresh = await GH.getJson(pathOf(id)); if (fresh) S.srv[id] = fresh; } catch (_) {}
   } finally {
     S.pend[id] = (S.pend[id] || []).filter(x => x !== p);
     S.busy[id]--; rebuild(); sched();
@@ -212,7 +219,7 @@ function moveStep(lid, sid, dir){
     [d.steps[i], d.steps[j]] = [d.steps[j], d.steps[i]];
   }, `Reorder steps (${S.byId[lid].name})`);
 }
-function newStep(name, started){ return {id:rid(), name, state:'pending', note:'', recipe:'', started:started || '', issues:[], by:null, at:null, log:[]}; }
+function newStep(name, started){ return {id:rid(), name, state:'pending', note:'', recipe:'', recipeId:'', days:'', started:started || '', issues:[], by:null, at:null, log:[]}; }
 function addStep(lid, name, afterId, started){
   name = (name || '').trim(); if (!name || !S.byId[lid]) return;
   const step = newStep(name, started);
@@ -248,14 +255,81 @@ function rmTag(lid, tag){
   const l = S.byId[lid]; if (!l) return;
   mutate(lid, d => { d.tags = (d.tags || []).filter(t => t !== tag); }, `Remove tag ${tag} (${l.name})`);
 }
+/* ---------- recipe library ---------- */
+const rKey = id => 'r~' + id;
+const recipeVer = r => r.version ? (/^\d/.test(r.version) ? 'v' + r.version : r.version) : '';
+const recipeName = r => r.name + (recipeVer(r) ? ' ' + recipeVer(r) : '');
+const openRecipeIssues = r => r.issues.filter(i => !i.resolved).length;
+function recipeUse(r){ const out = []; S.L.forEach(l => l.steps.forEach(st => { if (st.recipeId === r.id) out.push({l, s:st}); })); return out; }
+function knownProcesses(){ return [...new Set(BASE_STEPS.concat(S.R.map(r => r.process).filter(Boolean)))].sort(); }
+function mutateR(id, fn, message){ return mutate(rKey(id), fn, message); }
+function setRecipe(id, patch, note){
+  const r = S.RBy[id]; if (!r) return;
+  const by = me(), at = Date.now();
+  mutateR(id, d => { Object.assign(d, patch); d.history = [...(d.history || []), {by, at, note}].slice(-40); }, `Recipe ${r.name}: ${note}`);
+}
+function addRecipeIssue(id, text){
+  text = (text || '').trim(); const r = S.RBy[id]; if (!text || !r) return;
+  const by = me(), at = Date.now(), issue = {id:rid(), text, by, at, resolved:false, resolvedBy:null, resolvedAt:null};
+  mutateR(id, d => { d.issues = d.issues || []; d.issues.push(issue); d.history = [...(d.history || []), {by, at, note:'Issue: ' + text.slice(0, 200)}].slice(-40); }, `Issue on recipe ${r.name}`);
+}
+function resolveRecipeIssue(id, iid){
+  const r = S.RBy[id], i = r && r.issues.find(x => x.id === iid); if (!i) return;
+  const resolved = !i.resolved, by = me(), at = Date.now();
+  mutateR(id, d => {
+    const y = (d.issues || []).find(z => z.id === iid); if (!y) return;
+    y.resolved = resolved; y.resolvedBy = resolved ? by : null; y.resolvedAt = resolved ? at : null;
+    d.history = [...(d.history || []), {by, at, note:(resolved ? 'Issue resolved: ' : 'Issue reopened: ') + y.text.slice(0, 200)}].slice(-40);
+  }, `${resolved ? 'Resolve' : 'Reopen'} issue on recipe ${r.name}`);
+}
+function delRecipeIssue(id, iid){
+  const r = S.RBy[id]; if (!r) return;
+  mutateR(id, d => { d.issues = (d.issues || []).filter(i => i.id !== iid); }, `Delete issue on recipe ${r.name}`);
+}
+async function removeRecipeFile(id, fid){
+  const r = S.RBy[id], f = r && r.files.find(x => x.id === fid); if (!f) return;
+  await mutateR(id, d => { d.files = (d.files || []).filter(x => x.id !== fid); }, `Remove file ${f.name} from recipe ${r.name}`);
+  if (f.source === 'repo'){ try { await GH.del(f.path, `Delete ${f.name} [${me()}]`); } catch (_) {} }
+}
+async function duplicateRecipe(id){
+  const src = S.RBy[id]; if (!src) return;
+  const nid = rid(), t = Date.now();
+  const data = {id:nid, name:src.name + ' (copy)', process:src.process || '', version:'', status:'draft', tools:src.tools || '', body:src.body || '',
+    files:src.files.filter(f => f.source === 'link').map(f => Object.assign({}, clone(f), {id:rid(), by:me(), at:t})), issues:[],
+    history:[{by:me(), at:t, note:'Duplicated from ' + recipeName(src)}], createdBy:me(), createdAt:t, updatedAt:t};
+  try {
+    const r = await GH.putJson(recipePath(nid), data, null, `Duplicate recipe ${src.name} [${me()}]`);
+    S.srv[rKey(nid)] = {data, sha:r.sha}; rebuild(); location.hash = 'r-' + nid; sched();
+  } catch (e){ toast('Couldn’t duplicate the recipe (' + errText(e) + ').'); }
+}
+async function deleteRecipe(id){
+  try {
+    const key = rKey(id);
+    await (S.queue[key] || Promise.resolve());
+    const d = S.srv[key].data;
+    for (const f of (d.files || [])) if (f.source === 'repo'){ try { await GH.del(f.path, `Delete file [${me()}]`); } catch (_) {} }
+    await GH.delWithSha(recipePath(id), S.srv[key].sha, `Delete recipe ${d.name} [${me()}]`);
+    delete S.srv[key]; rebuild(); location.hash = 'recipes';
+  } catch (e){ toast('Couldn’t delete the recipe (' + errText(e) + ').'); }
+}
+function selectRecipe(lid, sid, val){
+  const l = S.byId[lid], st = l && stepOf(l, sid); if (!st) return;
+  if (val === '__custom'){ if (!S.recipeCustom.includes(sid)) S.recipeCustom.push(sid); sched(); return; }
+  S.recipeCustom = S.recipeCustom.filter(x => x !== sid);
+  if (val === ''){ setStepFields(lid, sid, {recipeId:'', recipe:''}, 'Recipe cleared'); return; }
+  const r = S.RBy[val]; if (!r) return;
+  setStepFields(lid, sid, {recipeId:r.id, recipe:recipeName(r)}, 'Recipe: ' + recipeName(r));
+}
+
 /* ---------- section dates, duplicate layout, copy and paste steps ---------- */
 const SECTIONS = [['design','Design'],['fab','Fab'],['results','Measurement']];
 const secOf = (l, k) => (l.dates && l.dates[k]) || {start:'', end:''};
 function setSecDate(lid, key, which, value){
-  const l = S.byId[lid]; if (!l || !['start', 'end'].includes(which)) return;
+  const l = S.byId[lid]; if (!l || !['start', 'end', 'days'].includes(which)) return;
   const label = (SECTIONS.find(x => x[0] === key) || [])[1] || key;
+  if (which === 'days'){ const n = parseInt(value, 10); value = n > 0 ? n : ''; }
   mutate(lid, d => { d.dates = d.dates || {}; d.dates[key] = d.dates[key] || {start:'', end:''}; d.dates[key][which] = value; },
-    `${label} ${which === 'start' ? 'started' : 'finished'} ${value || 'cleared'} (${l.name})`);
+    which === 'days' ? `${label} time frame ${value ? value + ' days' : 'cleared'} (${l.name})` : `${label} ${which === 'start' ? 'started' : 'finished'} ${value || 'cleared'} (${l.name})`);
 }
 const CLIP_KEY = 'fabtracker.clip';
 function readClip(){
@@ -263,14 +337,14 @@ function readClip(){
 }
 function copySteps(lid, ids){
   const l = S.byId[lid]; if (!l) return;
-  const steps = l.steps.filter(x => ids.includes(x.id)).map(x => ({name:x.name, recipe:x.recipe || ''}));
+  const steps = l.steps.filter(x => ids.includes(x.id)).map(x => ({name:x.name, recipe:x.recipe || '', recipeId:x.recipeId || '', days:x.days || ''}));
   if (!steps.length) return;
   try { localStorage.setItem(CLIP_KEY, JSON.stringify({steps, from:l.name, at:Date.now()})); } catch (_) { toast('Couldn’t copy (browser storage is blocked).'); return; }
   toast(`Copied ${steps.length} step${steps.length > 1 ? 's' : ''}. Open any layout and click Paste.`);
 }
 function pasteSteps(lid, afterId){
   const clip = readClip(), l = S.byId[lid]; if (!clip || !l) return;
-  const add = clip.steps.map(c => Object.assign(newStep(c.name), {recipe:c.recipe || ''}));
+  const add = clip.steps.map(c => Object.assign(newStep(c.name), {recipe:c.recipe || '', recipeId:c.recipeId || '', days:c.days || ''}));
   mutate(lid, d => {
     if (stepOf(d, add[0].id)) return;
     const i = afterId ? d.steps.findIndex(x => x.id === afterId) : -1;
@@ -282,10 +356,10 @@ function pasteSteps(lid, afterId){
 async function duplicateLayout(srcId, o){
   const src = S.byId[srcId]; if (!src) return null;
   const id = rid(), t = Date.now();
-  const steps = o.steps ? src.steps.map(x => Object.assign(newStep(x.name), {recipe:o.recipes ? (x.recipe || '') : '', note:o.notes ? (x.note || '') : ''})) : [];
+  const steps = o.steps ? src.steps.map(x => Object.assign(newStep(x.name), {days:x.days || '', recipe:o.recipes ? (x.recipe || '') : '', recipeId:o.recipes ? (x.recipeId || '') : '', note:o.notes ? (x.note || '') : ''})) : [];
   const files = o.links ? src.files.filter(f => f.source === 'link' && DESIGN_KINDS.includes(f.kind || 'other')).map(f => Object.assign({}, clone(f), {id:rid(), stepId:'', by:me(), at:t})) : [];
   const data = {id, name:o.name, type:src.type, status:'planned', purpose:src.purpose || '', tags:src.tags.slice(), workers:[me()],
-    createdBy:me(), createdAt:t, updatedAt:t, dates:{}, steps, files, results:[]};
+    createdBy:me(), createdAt:t, updatedAt:t, dates:Object.fromEntries(SECTIONS.filter(([k]) => secOf(src, k).days).map(([k]) => [k, {start:'', end:'', days:secOf(src, k).days}])), steps, files, results:[]};
   const r = await GH.putJson(layoutPath(id), data, null, `Duplicate layout ${src.name} as ${o.name} [${me()}]`);
   S.srv[id] = {data, sha:r.sha}; rebuild();
   return id;
@@ -369,6 +443,13 @@ async function sync(){
       if ((cur && cur.sha === it.sha) || S.busy[id]) return;
       const r = await GH.getJson(it.path); if (r) S.srv[id] = r;
     }));
+    const ritems = (await GH.list(dataDir() + '/recipes')).filter(x => x.type === 'file' && x.name.endsWith('.json'));
+    await Promise.all(ritems.map(async it => {
+      const key = 'r~' + it.name.slice(0, -5); seen.add(key);
+      const cur = S.srv[key];
+      if ((cur && cur.sha === it.sha) || S.busy[key]) return;
+      const r = await GH.getJson(it.path); if (r) S.srv[key] = r;
+    }));
     for (const id in S.srv) if (!seen.has(id) && !S.busy[id]) delete S.srv[id];
     const pf = await GH.getJson(presetsPath());
     S.presets = pf ? (pf.data.names || []) : []; S.presetsSha = pf ? pf.sha : null;
@@ -428,7 +509,8 @@ function viewSetup(){
 
 /* ---------- views ---------- */
 function topbar(extra){
-  return `<header class="top"><h1><a href="#overview">Fab tracker</a></h1>${extra || ''}
+  const onR = isRecipes() || !!routeR();
+  return `<header class="top"><h1><a href="#overview">Fab tracker</a></h1><nav class="nav" aria-label="Sections"><a href="#overview" class="${onR ? '' : 'on'}">Layouts</a><a href="#recipes" class="${onR ? 'on' : ''}">Recipes</a></nav>${extra || ''}
     ${S.me ? `<div class="me">${who(S.me.login)} <button class="btn ghost" data-act="signout">Sign out</button></div>` : ''}</header>`;
 }
 const fmtDate = d => { const [y, m, dd] = String(d).split('-').map(Number); return y ? new Date(y, m - 1, dd).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'}) : ''; };
@@ -460,11 +542,12 @@ function sortLayouts(arr){
 }
 function ovRow(l){
   const st = stats(l), oi = openIssues(l);
-  return `<div class="row" role="link" tabindex="0" data-act="open" data-id="${l.id}">
-        <div><div class="nm">${esc(l.name)}</div><div class="tagrow">${l.type ? `<span class="tag ${l.type}">${l.type === 'active' ? 'Active' : 'Passive'}</span>` : ''}${tagChips(l)}</div></div>
-        <div class="purpose">${esc(l.purpose || 'No description')}</div>
+  const tint = oi ? 'tint-issue' : l.status === 'infab' ? 'tint-fab' : l.status === 'done' ? 'tint-done' : '';
+  const stLabel = (STATUS.find(x => x[0] === (l.status || 'planned')) || [])[1] || '';
+  return `<div class="row ${tint}" role="link" tabindex="0" data-act="open" data-id="${l.id}">
+        <div><div class="nm">${esc(l.name)}</div><div class="tagrow">${l.type ? `<span class="tag ${l.type}">${l.type === 'active' ? 'Active' : 'Passive'}</span>` : ''}${S.group === 'none' ? `<span class="tagc">${esc(stLabel)}</span>` : ''}${tagChips(l)}</div></div>
         <div class="c-who">${l.workers.length ? l.workers.map(w => who(w)).join('') : '<span class="who">Unassigned</span>'}</div>
-        <div class="c-prog">${strip(l)}${tlShort(l)}<small>${st.total ? `${st.pass} of ${st.total} done${st.fail ? ` · ${st.fail} failed` : ''}` : 'No steps yet'}${oi ? ` · <span class="iss">${oi} open issue${oi > 1 ? 's' : ''}</span>` : ''}</small></div>
+        <div class="c-prog">${strip(l)}${tlShort(l)}<small>${st.total ? `${st.pass} of ${st.total} done${st.fail ? ` · ${st.fail} failed` : ''}` : 'No steps yet'}${oi ? ` · <span class="iss">${oi} open issue${oi > 1 ? 's' : ''}</span>` : ''}${overdueSteps(l) ? ` · <span class="iss">${overdueSteps(l)} overdue</span>` : ''}</small></div>
       </div>`;
 }
 function ovList(){
@@ -499,6 +582,23 @@ function tagBar(){
 }
 const fmtShort = d => { const [y, m, dd] = String(d).split('-').map(Number); return y ? new Date(y, m - 1, dd).toLocaleDateString(undefined, {month:'short', day:'numeric'}) : ''; };
 const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
+const addDays = (d, n) => { const [y, m, dd] = String(d).split('-').map(Number); return new Date(Date.UTC(y, m - 1, dd + n)).toISOString().slice(0, 10); };
+/* Time frame of N days counts the start date as day 1, so the due date is start + N - 1. Overdue starts the day after. */
+function dueInfo(start, days, done){
+  const n = parseInt(days, 10);
+  if (!start || !(n > 0)) return null;
+  const due = addDays(start, n - 1), late = !done && todayStr() > due;
+  return {due, late, over:late ? daysBetween(due, todayStr()) : 0};
+}
+const secInfo = (l, k) => { const r = secOf(l, k); return dueInfo(r.start, r.days, !!r.end); };
+const stepInfo = s => dueInfo(s.started, s.days, s.state !== 'pending');
+const overdueSteps = l => l.steps.filter(s => { const i = stepInfo(s); return i && i.late; }).length;
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+function dueChip(s){
+  const i = stepInfo(s); if (!i) return '';
+  if (i.late) return `<span class="issue-badge">${ico('alert')} Overdue by ${plural(i.over, 'day')}</span>`;
+  return s.state === 'pending' ? `<span class="dchip">Due ${fmtShort(i.due)}</span>` : '';
+}
 function rangeText(r, full){
   const f = full ? fmtDate : fmtShort;
   if (r.start && r.end) return f(r.start) + ' – ' + f(r.end);
@@ -507,19 +607,24 @@ function rangeText(r, full){
   return 'not set';
 }
 function timeline(l){
-  return `<div class="timeline" aria-label="Section dates">${SECTIONS.map(([k, t]) => { const r = secOf(l, k); return `<span class="tl ${r.start ? (r.end ? 'done' : 'on') : ''}"><b>${t}</b> ${esc(rangeText(r, true))}</span>`; }).join('')}</div>`;
+  return `<div class="timeline" aria-label="Section dates">${SECTIONS.map(([k, t]) => { const r = secOf(l, k), i = secInfo(l, k), late = i && i.late; return `<span class="tl ${r.start ? (r.end ? 'done' : (late ? 'late' : 'on')) : ''}"><b>${t}</b> ${esc(rangeText(r, true))}${late ? ' · overdue' : ''}</span>`; }).join('')}</div>`;
 }
 function tlShort(l){
-  const parts = SECTIONS.map(([k, t]) => { const r = secOf(l, k); return (r.start || r.end) ? `${t} ${esc(rangeText(r, false))}` : ''; }).filter(Boolean);
+  const parts = SECTIONS.map(([k, t]) => { const r = secOf(l, k), i = secInfo(l, k); return (r.start || r.end) ? `${t} ${esc(rangeText(r, false))}${i && i.late ? ' <span class="iss">overdue</span>' : ''}` : ''; }).filter(Boolean);
   return parts.length ? `<small class="tls">${parts.join(' · ')}</small>` : '';
 }
 function secDates(l, key){
   const r = secOf(l, key), ro = S.canWrite ? '' : 'disabled', label = SECTIONS.find(x => x[0] === key)[1];
   const bad = r.start && r.end && r.end < r.start;
   const n = r.start && r.end && !bad ? daysBetween(r.start, r.end) + 1 : 0;
-  const dur = n ? `${n} day${n > 1 ? 's' : ''}` : (r.start && !r.end ? `day ${daysBetween(r.start, todayStr()) + 1}` : '');
+  const dur = n ? plural(n, 'day') : (r.start && !r.end ? `day ${daysBetween(r.start, todayStr()) + 1}` : '');
+  const info = secInfo(l, key);
   const one = (which, word) => `<label>${word}<input type="date" class="txt" data-secdate="${key}" data-which="${which}" value="${esc(r[which] || '')}" ${ro}></label>${S.canWrite ? `<button class="btn sm" data-act="secnow" data-sec="${key}" data-which="${which}">Today</button>` : ''}`;
-  return `<div class="sdates"><span class="lbl">${label} dates</span>${one('start', 'Started')}${one('end', 'Finished')}${bad ? '<span class="warn">Finish is before start</span>' : dur ? `<span class="dchip">${dur}</span>` : ''}</div>`;
+  const frame = `<label>Time frame<input type="number" min="1" class="txt narrow" data-secdate="${key}" data-which="days" value="${esc(r.days || '')}" placeholder="days" ${ro}></label>`;
+  let due = '';
+  if (info && !r.end) due = info.late ? `<span class="issue-badge">${ico('alert')} Overdue by ${plural(info.over, 'day')} (was due ${esc(fmtShort(info.due))})</span>` : `<span class="dchip">Due ${esc(fmtShort(info.due))}</span>`;
+  else if (info && r.end) due = r.end > info.due ? `<span class="warn">Finished ${plural(daysBetween(info.due, r.end), 'day')} late</span>` : '<span class="dchip">Finished on time</span>';
+  return `<div class="sdates"><span class="lbl">${label} dates</span>${one('start', 'Started')}${one('end', 'Finished')}${frame}${bad ? '<span class="warn">Finish is before start</span>' : dur ? `<span class="dchip">${dur}</span>` : ''}${due}</div>`;
 }
 function fabBar(l){
   const clip = readClip(), n = clip ? clip.steps.length : 0;
@@ -548,6 +653,111 @@ function viewOverview(){
   <div class="ov"><div id="ovlist">${ovList()}</div><aside><h2>Latest updates</h2>${activity()}</aside></div>`;
 }
 
+function recipeLine(s){
+  const r = s.recipeId && S.RBy[s.recipeId];
+  if (r){
+    const oi = openRecipeIssues(r);
+    return `<div class="s-recipe"><b>Recipe</b> <a data-act="openrecipe" data-id="${r.id}">${esc(recipeName(r))}</a>${r.status === 'retired' ? ' <span class="issue-badge">retired</span>' : ''}${oi ? ` <span class="issue-badge">${ico('alert')} ${oi} open recipe issue${oi > 1 ? 's' : ''}</span>` : ''}</div>`;
+  }
+  return s.recipe ? `<div class="s-recipe"><b>Recipe</b> ${esc(s.recipe)}${s.recipeId ? ' <span class="hint">(no longer in the library)</span>' : ''}</div>` : '';
+}
+function recipePicker(s, ro){
+  const cur = s.recipeId && S.RBy[s.recipeId] ? s.recipeId : '';
+  const mode = cur || ((s.recipe || S.recipeCustom.includes(s.id)) ? '__custom' : '');
+  const avail = S.R.filter(r => r.status !== 'retired' || r.id === cur);
+  const nm = s.name.toLowerCase();
+  const fits = r => { const p = (r.process || '').toLowerCase(); return p && (p === nm || nm.includes(p) || p.includes(nm)); };
+  const opt = r => `<option value="${r.id}" ${mode === r.id ? 'selected' : ''}>${esc(recipeName(r))}${r.process ? ' · ' + esc(r.process) : ''}${r.status !== 'active' ? ' (' + r.status + ')' : ''}</option>`;
+  const sugg = avail.filter(fits), rest = avail.filter(r => !fits(r));
+  const sel = S.R.length || mode === '__custom'
+    ? `<select data-recipesel="${s.id}" ${ro}><option value="">None</option>${sugg.length ? `<optgroup label="Suggested for this step">${sugg.map(opt).join('')}</optgroup>` : ''}${rest.length ? `<optgroup label="${sugg.length ? 'All other recipes' : 'Recipes'}">${rest.map(opt).join('')}</optgroup>` : ''}<option value="__custom" ${mode === '__custom' ? 'selected' : ''}>Custom (type it in)</option></select>`
+    : `<span class="hint" style="margin:0">No saved recipes yet. <a href="#recipes">Add one on the Recipes page</a>, or</span> <select data-recipesel="${s.id}" ${ro}><option value="">None</option><option value="__custom">Type a custom recipe</option></select>`;
+  return `<label>Recipe used${sel}${mode === '__custom' ? `<input class="txt" data-recipe="${s.id}" value="${esc(s.recipe || '')}" placeholder="e.g. Si etch v3, 60 s" ${ro}>` : ''}</label>`;
+}
+function recipeFileCard(r, f){
+  const isImg = f.source === 'repo' && /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(f.name);
+  const ext = (f.name.split('.').pop() || 'file').toUpperCase().slice(0, 4);
+  return `<div class="file">
+    ${isImg ? `<button class="thumb" data-act="lightbox" data-path="${esc(f.path)}" data-name="${esc(f.name)}" aria-label="View ${esc(f.name)}"><img data-path="${esc(f.path)}" alt="${esc(f.name)}"></button>` : `<div class="thumb">${esc(ext)}</div>`}
+    <div><div class="fn">${esc(f.name)}</div>
+      ${f.note ? `<div class="fm">${esc(f.note)}</div>` : ''}
+      <div class="fm">${who(f.by)} · ${fmt(f.at)}${f.size ? ' · ' + (f.size / 1048576 >= 1 ? (f.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(f.size / 1024)) + ' KB') : ''}${f.source === 'link' ? ' · Link' : ''}</div>
+      <div class="fa">${f.source === 'link' ? `<a class="btn sm" href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${ico('external')} Open link</a>` : `<button class="btn sm" data-act="download" data-path="${esc(f.path)}" data-name="${esc(f.name)}">${ico('download')} Download</button>`}</div></div>
+    ${S.canWrite ? `<button class="btn ghost sm danger ${S.armed === 'rf' + f.id ? 'armed' : ''}" data-act="delrfile" data-id="${f.id}">${S.armed === 'rf' + f.id ? 'Click again to remove' : 'Remove'}</button>` : ''}
+  </div>`;
+}
+function rRow(r){
+  const oi = openRecipeIssues(r), n = recipeUse(r).length;
+  return `<div class="row rrow" role="link" tabindex="0" data-act="openrecipe" data-id="${r.id}">
+    <div><div class="nm">${esc(r.name)} ${recipeVer(r) ? `<span class="ver-tag">${esc(recipeVer(r))}</span>` : ''}</div><div class="tagrow">${r.status !== 'active' ? `<span class="tagc">${r.status === 'draft' ? 'Draft' : 'Retired'}</span>` : ''}${r.tools ? `<span class="hint" style="margin:0">${esc(r.tools)}</span>` : ''}</div></div>
+    <div class="purpose">${esc((r.body || '').replace(/[#*`\-]/g, '').slice(0, 140) || 'No parameters written yet')}</div>
+    <div class="c-prog"><small>${n ? `Used in ${n} step${n > 1 ? 's' : ''}` : 'Not used yet'}</small></div>
+    <div class="c-prog">${oi ? `<span class="issue-badge">${ico('alert')} ${oi} open issue${oi > 1 ? 's' : ''}</span>` : `<small>${r.issues.length ? 'All issues resolved' : 'No issues'}</small>`}</div>
+  </div>`;
+}
+function rList(){
+  if (!S.R.length) return `<div class="empty"><strong>No recipes yet</strong>Save your process recipes here, then pick them from a dropdown on any step. Each recipe can hold parameters, files and its own issues.${S.canWrite ? '<br><button class="btn primary" data-act="newrecipe">' + ico('plus') + ' New recipe</button>' : ''}</div>`;
+  const q = S.rq.trim().toLowerCase();
+  const list = S.R.filter(r => (S.rproc === 'all' || (r.process || '') === S.rproc) && (S.rstatus === 'all' || r.status === S.rstatus) && (!q || [r.name, r.process, r.version, r.tools, r.body].join(' ').toLowerCase().includes(q)));
+  if (!list.length) return '<div class="empty"><strong>Nothing matches</strong>Try a different search or filter.</div>';
+  const groups = new Map();
+  list.forEach(r => { const k = r.process || 'No process'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); });
+  return [...groups.entries()].sort(([a], [b]) => a === 'No process' ? 1 : b === 'No process' ? -1 : a.localeCompare(b))
+    .map(([k, arr]) => `<section class="group"><h2>${esc(k)} <span>${arr.length}</span></h2><div class="rows">${arr.map(rRow).join('')}</div></section>`).join('');
+}
+function viewRecipes(){
+  const procs = [...new Set(S.R.map(r => r.process).filter(Boolean))].sort();
+  return topbar(S.canWrite ? `<button class="btn primary" data-act="newrecipe">${ico('plus')} New recipe</button>` : '') + `
+  <div class="bar">
+    <input class="search" data-live="rq" type="search" placeholder="Search recipes, processes, tools or parameters" aria-label="Search recipes" value="${esc(S.rq)}">
+    <label class="fld">Process <select data-rproc aria-label="Filter by process"><option value="all">All</option>${procs.map(x => `<option value="${esc(x)}" ${S.rproc === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label>
+    <label class="fld">Status <select data-rstatus aria-label="Filter by status"><option value="all">All</option>${RECIPE_STATUS.map(([k, t]) => `<option value="${k}" ${S.rstatus === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+  </div>
+  <div id="rlist">${rList()}</div>`;
+}
+function viewRecipe(id){
+  const r = S.RBy[id];
+  if (!r) return topbar() + '<div class="empty"><strong>Recipe not found</strong>It may have been deleted.<br><a class="btn" href="#recipes">Back to all recipes</a></div>';
+  const ro = !S.canWrite, dis = ro ? 'disabled' : '', oi = openRecipeIssues(r), uses = recipeUse(r);
+  const hist = r.history.slice().reverse();
+  return topbar() + `
+  <button class="btn ghost back" data-act="gorecipes">${ico('back')} All recipes</button>
+  <div class="dhead">
+    <input class="title" data-rf="name" value="${esc(r.name)}" aria-label="Recipe name" ${dis}>
+    <div class="meta">
+      <label class="fld">Process <input class="txt" data-rf="process" list="proc-list" value="${esc(r.process || '')}" placeholder="e.g. Etching" ${dis}><datalist id="proc-list">${knownProcesses().map(x => `<option value="${esc(x)}">`).join('')}</datalist></label>
+      <label class="fld">Version <input class="txt narrow" data-rf="version" value="${esc(r.version || '')}" placeholder="e.g. 3" ${dis}></label>
+      <label class="fld">Status <select data-rf="status" ${dis}>${RECIPE_STATUS.map(([k, t]) => `<option value="${k}" ${(r.status || 'active') === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      <label class="fld">Equipment <input class="txt" data-rf="tools" value="${esc(r.tools || '')}" placeholder="Tool or machine" ${dis}></label>
+    </div>
+    ${oi ? `<div class="banner bad">${ico('alert')} ${oi} open issue${oi > 1 ? 's' : ''} on this recipe. Steps that use it show a warning.</div>` : ''}
+  </div>
+
+  <h3 class="sec">Parameters and procedure</h3>
+  ${S.editRBody
+    ? `<textarea class="txt" rows="12" data-rbody placeholder="Write the parameters and procedure, e.g.&#10;# Etch&#10;- Gas: SF6 / O2, 40 / 5 sccm&#10;- Power: 100 W, 30 mTorr&#10;- Time: 60 s">${esc(r.body || '')}</textarea><div class="tools" style="margin-top:8px"><button class="btn primary" data-act="rbodysave">Save</button><button class="btn" data-act="rbodycancel">Cancel</button></div>`
+    : `<div class="rblock"><div class="rbody"><div class="prose">${mdLite(r.body || '') || '<p class="hint">Nothing written yet.</p>'}</div>${S.canWrite ? '<div class="tools"><button class="btn" data-act="rbodyedit">Edit parameters</button></div>' : ''}</div></div>`}
+
+  <h3 class="sec">Files</h3>
+  ${S.canWrite ? `<div class="rbar"><button class="btn" data-act="rattach">${ico('clip')} Add a file or link</button></div>` : ''}
+  ${r.files.length ? `<div class="files">${r.files.slice().sort((a, b) => (b.at || 0) - (a.at || 0)).map(f => recipeFileCard(r, f)).join('')}</div>` : '<p class="hint">No files yet. Add recipe files exported from the tool, PDFs, or links from Box or Google Drive.</p>'}
+
+  <h3 class="sec">Issues</h3>
+  <div class="issues" style="border:0;padding:0">
+    ${r.issues.length ? `<ul class="ilist">${r.issues.map(x => `<li class="${x.resolved ? 'res' : ''}"><div>${esc(x.text)}</div>
+      <div class="im">${who(x.by)} · ${fmt(x.at)}${x.resolved ? ` · resolved by ${esc(x.resolvedBy || '')} ${fmt(x.resolvedAt)}` : ''}</div>
+      ${S.canWrite ? `<div class="ia"><button class="btn sm" data-act="rresolve" data-iid="${x.id}">${x.resolved ? 'Reopen' : 'Mark resolved'}</button><button class="btn ghost sm danger ${S.armed === 'ri' + x.id ? 'armed' : ''}" data-act="rdelissue" data-iid="${x.id}">${S.armed === 'ri' + x.id ? 'Click again to delete' : 'Delete'}</button></div>` : ''}</li>`).join('')}</ul>` : '<p class="hint" style="margin:0">No issues reported on this recipe.</p>'}
+    ${S.canWrite ? `<div class="tools"><input class="txt" data-rissue placeholder="Describe the problem, e.g. etch rate drifts after 20 wafers" aria-label="Describe an issue"><button class="btn" data-act="raddissue">${ico('alert')} Report issue</button></div>` : ''}
+  </div>
+
+  <h3 class="sec">Used in</h3>
+  ${uses.length ? `<div class="tbl"><table><thead><tr><th>Layout</th><th>Step</th><th>Result</th><th>Started</th></tr></thead><tbody>${uses.map(({l, s: st}) => `<tr><td><a class="lnk" data-act="open" data-id="${l.id}">${esc(l.name)}</a></td><td>${esc(st.name)}</td><td>${stateWord(st.state)}</td><td>${st.started ? esc(fmtDate(st.started)) : ''}</td></tr>`).join('')}</tbody></table></div>` : '<p class="hint" style="margin:0">Not used in any step yet. Pick it from the Recipe used dropdown on a step.</p>'}
+
+  <h3 class="sec">History</h3>
+  ${hist.length ? `<ol class="hist">${hist.map(h => `<li>${who(h.by)}<span>${fmt(h.at)}</span><q>${esc(h.note)}</q></li>`).join('')}</ol>` : '<p class="hint" style="margin:0">No changes recorded yet.</p>'}
+
+  ${S.canWrite ? `<p style="margin-top:36px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-act="rdupe">Duplicate as a new version</button><button class="btn danger ${S.armed === 'rd' + id ? 'armed' : ''}" data-act="rdel">${S.armed === 'rd' + id ? 'Click again to delete' + (uses.length ? ` (used in ${uses.length} step${uses.length > 1 ? 's' : ''})` : '') : 'Delete recipe'}</button></p>` : ''}`;
+}
 function stepRow(l, s, i){
   const open = !!S.open[s.id], ro = S.canWrite ? '' : 'disabled';
   const nFiles = l.files.filter(f => f.stepId === s.id).length;
@@ -557,9 +767,9 @@ function stepRow(l, s, i){
     <span class="node">${s.state === 'pass' ? ico('check') : s.state === 'fail' ? ico('x') : i + 1}</span>
     <div class="s-main" data-act="toggle" data-id="${s.id}">
       <div class="s-name">${S.selMode ? `<input type="checkbox" class="selbox" data-act="selstep" data-id="${s.id}" ${S.sel.includes(s.id) ? 'checked' : ''} aria-label="Select ${esc(s.name)}">` : ''}${esc(s.name)}</div>
-      ${s.recipe ? `<div class="s-recipe"><b>Recipe</b> ${esc(s.recipe)}</div>` : ''}
+      ${recipeLine(s)}
       ${s.note ? `<div class="s-note">${esc(s.note)}</div>` : ''}
-      <div class="s-meta">${s.started ? `<span class="dchip">Started ${fmtDate(s.started)}</span>` : ''}${nOpen ? `<span class="issue-badge">${ico('alert')} ${nOpen} open issue${nOpen > 1 ? 's' : ''}</span>` : ''}${s.at ? `${who(s.by)}<span>${fmt(s.at)}</span>` : (s.started ? '' : '<span>Not started</span>')}${nFiles ? `<button class="chipbtn" data-act="stepfiles" data-id="${s.id}">${nFiles} file${nFiles > 1 ? 's' : ''}</button>` : ''}</div>
+      <div class="s-meta">${s.started ? `<span class="dchip">Started ${fmtDate(s.started)}</span>` : ''}${dueChip(s)}${nOpen ? `<span class="issue-badge">${ico('alert')} ${nOpen} open issue${nOpen > 1 ? 's' : ''}</span>` : ''}${s.at ? `${who(s.by)}<span>${fmt(s.at)}</span>` : (s.started ? '' : '<span>Not started</span>')}${nFiles ? `<button class="chipbtn" data-act="stepfiles" data-id="${s.id}">${nFiles} file${nFiles > 1 ? 's' : ''}</button>` : ''}</div>
     </div>
     <div class="s-btns">
       <button class="mark pass ${s.state === 'pass' ? 'on' : ''}" data-act="mark" data-state="pass" data-id="${s.id}" aria-pressed="${s.state === 'pass'}" aria-label="Mark ${esc(s.name)} done" title="Done" ${ro}>${ico('check')}</button>
@@ -568,8 +778,9 @@ function stepRow(l, s, i){
     ${open ? `<div class="s-panel">
       <div class="two">
         <label>Started<span class="inl"><input type="date" class="txt" data-sdate="${s.id}" value="${esc(s.started || '')}" ${ro}><button class="btn sm" data-act="today" data-id="${s.id}" ${ro}>Today</button></span></label>
-        <label>Recipe used<input class="txt" data-recipe="${s.id}" value="${esc(s.recipe || '')}" placeholder="e.g. Si etch v3, 60 s" ${ro}></label>
+        <label>Time frame (days)<span class="inl"><input type="number" min="1" class="txt" data-sdays="${s.id}" value="${esc(s.days || '')}" placeholder="e.g. 5" ${ro}>${stepInfo(s) ? `<span class="hint" style="margin:0;white-space:nowrap">due ${esc(fmtDate(stepInfo(s).due))}</span>` : ''}</span></label>
       </div>
+      ${recipePicker(s, ro)}
       <label>Note<textarea class="txt" rows="3" data-note="${s.id}" placeholder="Dose, thickness, observations, anything worth remembering" ${ro}>${esc(s.note || '')}</textarea></label>
       <div class="issues">
         <b>Issues</b>
@@ -687,7 +898,7 @@ function viewDetail(id){
     </div>
     ${tagsEditor(l, ro)}
     <textarea class="txt" rows="2" data-f="purpose" placeholder="What is this layout for?" aria-label="Purpose" ${dis}>${esc(l.purpose || '')}</textarea>
-    <div class="prog">${strip(l, true)}<div class="sum">${st.total ? `<b>${st.pass} of ${st.total}</b> steps done${st.fail ? `, <b>${st.fail}</b> failed` : ''}` : 'No steps yet'}${oi ? ` · <span class="iss">${oi} open issue${oi > 1 ? 's' : ''}</span>` : ''}</div></div>
+    <div class="prog">${strip(l, true)}<div class="sum">${st.total ? `<b>${st.pass} of ${st.total}</b> steps done${st.fail ? `, <b>${st.fail}</b> failed` : ''}` : 'No steps yet'}${oi ? ` · <span class="iss">${oi} open issue${oi > 1 ? 's' : ''}</span>` : ''}${overdueSteps(l) ? ` · <span class="iss">${plural(overdueSteps(l), 'step')} overdue</span>` : ''}</div></div>
   </div>
   ${timeline(l)}
   <div class="tabs" role="tablist">
@@ -717,7 +928,7 @@ function render(){
   else if (!S.loaded) html = topbar() + (S.err ? `<div class="empty"><strong>Couldn’t load the data</strong>GitHub returned “${esc(S.err)}”. Check the repository name and that your token can read it.<br><button class="btn" data-act="refresh">Try again</button> <button class="btn" data-act="signout">Change sign-in</button></div>` : '<div class="empty">Loading layouts from GitHub…</div>');
   else {
     const r = route();
-    html = (S.canWrite ? '' : '<div class="banner">You have read-only access to this repository, so you can’t update steps.</div>') + (r ? viewDetail(r) : viewOverview());
+    html = (S.canWrite ? '' : '<div class="banner">You have read-only access to this repository, so you can’t update steps.</div>') + (r ? viewDetail(r) : routeR() ? viewRecipe(routeR()) : isRecipes() ? viewRecipes() : viewOverview());
   }
   if (S.mode === 'app' && S.loaded) html += `<footer class="ver">Fab tracker, build ${BUILD}</footer>`;
   $app.innerHTML = html;
@@ -783,6 +994,67 @@ async function createLayout(){
     S.srv[id] = {data, sha:r.sha}; rebuild();
     closeModal(); S.tab = 'fab'; location.hash = 'l-' + id; sched();
   } catch (e){ btn.disabled = false; toast('Couldn’t create the layout (' + errText(e) + ').'); }
+}
+function openNewRecipe(){
+  openModal(`<h2>New recipe</h2>
+    <label>Name<input class="txt" id="nr-name" placeholder="e.g. Si deep etch"></label>
+    <div class="two"><label>Process<input class="txt" id="nr-proc" list="proc-list2" placeholder="e.g. Etching"><datalist id="proc-list2">${knownProcesses().map(x => `<option value="${esc(x)}">`).join('')}</datalist></label>
+      <label>Version<input class="txt" id="nr-ver" placeholder="e.g. 1"></label></div>
+    <div class="two"><label>Equipment<input class="txt" id="nr-tools" placeholder="Tool or machine"></label>
+      <label>Status<select id="nr-status"><option value="active">Active</option><option value="draft">Draft</option></select></label></div>
+    <label>Parameters and procedure (optional)<textarea class="txt" id="nr-body" rows="6" placeholder="- Gas: SF6 / O2, 40 / 5 sccm&#10;- Power: 100 W&#10;- Time: 60 s"></textarea></label>
+    <div class="acts"><button class="btn" data-act="closemodal">Cancel</button><button class="btn primary" data-act="createrecipe">Create recipe</button></div>`, 'wide');
+}
+async function createRecipe(){
+  const name = $('#nr-name').value.trim();
+  if (!name){ toast('Give the recipe a name.'); return; }
+  const id = rid(), t = Date.now();
+  const btn = modal.querySelector('[data-act="createrecipe"]'); btn.disabled = true;
+  const data = {id, name, process:$('#nr-proc').value.trim(), version:$('#nr-ver').value.trim(), status:$('#nr-status').value, tools:$('#nr-tools').value.trim(),
+    body:$('#nr-body').value, files:[], issues:[], history:[{by:me(), at:t, note:'Created'}], createdBy:me(), createdAt:t, updatedAt:t};
+  try {
+    const r = await GH.putJson(recipePath(id), data, null, `Create recipe ${name} [${me()}]`);
+    S.srv[rKey(id)] = {data, sha:r.sha}; rebuild();
+    closeModal(); location.hash = 'r-' + id; sched();
+  } catch (e){ btn.disabled = false; toast('Couldn’t create the recipe (' + errText(e) + ').'); }
+}
+function openRecipeAttach(id){
+  openModal(`<h2>Add a recipe file</h2>
+    <label>Source<select id="ra-src"><option value="upload">Upload from this computer</option><option value="link">Link from Box or Google Drive</option></select></label>
+    <div id="ra-up"><label>Files<input type="file" id="ra-file" multiple></label>
+      <p class="note-s">Any file type, up to 25 MB each, saved in the data repository under <b>${esc(dataDir())}/files/recipes/&lt;recipe&gt;/</b>.</p></div>
+    <div id="ra-ln" hidden><label>Link<input class="txt" id="ra-url" placeholder="https://…" inputmode="url"></label>
+      <label style="margin-top:10px">Name<input class="txt" id="ra-name" placeholder="e.g. etch_recipe_v3.rcp"></label></div>
+    <label>Note (optional)<input class="txt" id="ra-note" placeholder="e.g. tool export, 2026-11-10"></label>
+    <div class="acts"><button class="btn" data-act="closemodal">Cancel</button><button class="btn primary" data-act="dorattach" data-id="${id}">Add</button></div>`);
+  $('#ra-src').addEventListener('change', e => { $('#ra-up').hidden = e.target.value !== 'upload'; $('#ra-ln').hidden = e.target.value !== 'link'; });
+}
+async function doRecipeAttach(id){
+  const r = S.RBy[id]; if (!r) return;
+  const src = $('#ra-src').value, note = $('#ra-note').value.trim();
+  const btn = modal.querySelector('[data-act="dorattach"]'); btn.disabled = true;
+  try {
+    if (src === 'link'){
+      const url = $('#ra-url').value.trim();
+      if (!/^https:\/\//i.test(url)){ toast('Paste a full https:// link.'); btn.disabled = false; return; }
+      const entry = {id:rid(), name:$('#ra-name').value.trim() || url.replace(/^https:\/\//i, '').slice(0, 60), source:'link', url, note, by:me(), at:Date.now()};
+      await mutateR(id, d => { (d.files ||= []).push(entry); }, `Link ${entry.name} to recipe ${r.name}`);
+    } else {
+      const list = [...$('#ra-file').files];
+      if (!list.length){ toast('Choose a file first.'); btn.disabled = false; return; }
+      const big = list.find(f => f.size > MAX_UPLOAD);
+      if (big){ toast(big.name + ' is over 25 MB. Keep it in Box or Google Drive and add a link instead.'); btn.disabled = false; return; }
+      for (let i = 0; i < list.length; i++){
+        btn.textContent = `Uploading ${i + 1} of ${list.length}…`;
+        const f = list[i], fid = rid();
+        const path = `${dataDir()}/files/recipes/${id}/${fid}-${f.name.replace(/[^A-Za-z0-9._-]+/g, '_')}`;
+        await GH.putBytes(path, await fileB64(f), `Add recipe file ${f.name} [${me()}]`);
+        const entry = {id:fid, name:f.name, source:'repo', path, size:f.size, note, by:me(), at:Date.now()};
+        await mutateR(id, d => { (d.files ||= []).push(entry); }, `Add file ${f.name} to recipe ${r.name}`);
+      }
+    }
+    closeModal(); sched();
+  } catch (e){ btn.disabled = false; btn.textContent = 'Add'; toast('Couldn’t add the file (' + errText(e) + ').'); }
 }
 function openDuplicate(lid){
   const l = S.byId[lid]; if (!l) return;
@@ -1170,14 +1442,15 @@ async function doResultImages(lid){
 }
 
 /* ---------- export ---------- */
+function recipeNameOfStep(s){ const r = s.recipeId && S.RBy[s.recipeId]; return r ? recipeName(r) : (s.recipe || ''); }
 function exportCsv(){
   const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-  const rows = [['Layout','Type','Tags','Status','Design start','Design finish','Fab start','Fab finish','Measurement start','Measurement finish','Purpose','Workers','Step #','Step','Started','Recipe','Result','Open issues','Note','Updated by','Updated at']];
+  const rows = [['Layout','Type','Tags','Status','Design start','Design finish','Design days','Fab start','Fab finish','Fab days','Measurement start','Measurement finish','Measurement days','Purpose','Workers','Step #','Step','Started','Time frame (days)','Overdue','Recipe','Result','Open issues','Note','Updated by','Updated at']];
   S.L.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(l => {
-    const sd = k => [secOf(l, k).start || '', secOf(l, k).end || ''];
+    const sd = k => [secOf(l, k).start || '', secOf(l, k).end || '', secOf(l, k).days || ''];
     const base = [l.name, l.type, l.tags.join('; '), l.status, ...sd('design'), ...sd('fab'), ...sd('results'), l.purpose, l.workers.join('; ')];
-    if (!l.steps.length) rows.push([...base, '', '', '', '', '', '', '', '', '']);
-    l.steps.forEach((s, i) => rows.push([...base, i + 1, s.name, s.started || '', s.recipe || '', stateWord(s.state), s.issues.filter(x => !x.resolved).map(x => x.text).join(' | '), s.note, s.at ? s.by : '', s.at ? new Date(s.at).toISOString() : '']));
+    if (!l.steps.length) rows.push([...base, ...Array(11).fill('')]);
+    l.steps.forEach((s, i) => rows.push([...base, i + 1, s.name, s.started || '', s.days || '', (stepInfo(s) || {}).late ? 'Yes' : 'No', recipeNameOfStep(s), stateWord(s.state), s.issues.filter(x => !x.resolved).map(x => x.text).join(' | '), s.note, s.at ? s.by : '', s.at ? new Date(s.at).toISOString() : '']));
   });
   const blob = new Blob([rows.map(r => r.map(q).join(',')).join('\n')], {type:'text/csv'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'fab-tracker.csv';
@@ -1190,7 +1463,7 @@ const up = () => { if (S.down){ S.down = false; setTimeout(flush, 60); } };
 document.addEventListener('pointerup', up, true);
 document.addEventListener('pointercancel', up, true);
 document.addEventListener('focusout', () => setTimeout(flush, 80));
-window.addEventListener('hashchange', () => { S.selMode = false; S.sel = []; S.fileStep = ''; S.kindFilter = 'all'; S.tab = 'fab'; S.open = {}; S.editBlock = null; sched(); window.scrollTo(0, 0); });
+window.addEventListener('hashchange', () => { S.selMode = false; S.sel = []; S.editRBody = false; S.fileStep = ''; S.kindFilter = 'all'; S.tab = 'fab'; S.open = {}; S.editBlock = null; sched(); window.scrollTo(0, 0); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
 setInterval(() => { if (!document.hidden) sync(); }, SYNC_MS);
 
@@ -1224,13 +1497,15 @@ document.addEventListener('keydown', e => {
   else if (t.hasAttribute('data-addworker')) addWorker(lid, t.value);
   else if (t.hasAttribute('data-addtag')){ const v = t.value; t.value = ''; addTags(lid, v); }
   else if (t.dataset.issue){ const v = t.value; t.value = ''; addIssue(lid, t.dataset.issue, v); }
-  else if (t.matches('.title,[data-rename],[data-recipe],[data-btitle],[data-bcaption]')) t.blur();
+  else if (t.dataset.rissue !== undefined){ const v = t.value; t.value = ''; addRecipeIssue(routeR(), v); }
+  else if (t.matches('.title,[data-rename],[data-recipe],[data-btitle],[data-bcaption],[data-rf]')) t.blur();
   else if (t.id === 'nl-name') createLayout();
-  else if (t.dataset.act === 'open' && t.getAttribute('role') === 'link') location.hash = 'l-' + t.dataset.id;
+  else if ((t.dataset.act === 'open' || t.dataset.act === 'openrecipe') && t.getAttribute('role') === 'link') location.hash = (t.dataset.act === 'open' ? 'l-' : 'r-') + t.dataset.id;
 });
 document.addEventListener('input', e => {
   const t = e.target;
   if (t.dataset.live === 'q'){ S.q = t.value; $('#ovlist').innerHTML = ovList(); }
+  else if (t.dataset.live === 'rq'){ S.rq = t.value; $('#rlist').innerHTML = rList(); }
   else if (t.name === 'repo'){ const l = $('#tokenlink'); if (l) l.href = tokenLink(t.value.split('/')[0].trim()); }
 });
 document.addEventListener('change', e => {
@@ -1244,7 +1519,19 @@ document.addEventListener('change', e => {
   else if (t.dataset.sdate) setStepFields(lid, t.dataset.sdate, {started:t.value}, t.value ? 'Started ' + t.value : 'Start date cleared');
   else if (t.dataset.recipe){
     const s = stepOf(S.byId[lid], t.dataset.recipe), v = t.value.trim();
-    if (s && (s.recipe || '') !== v) setStepFields(lid, t.dataset.recipe, {recipe:v}, v ? 'Recipe: ' + v : 'Recipe cleared');
+    if (s && ((s.recipe || '') !== v || s.recipeId)) setStepFields(lid, t.dataset.recipe, {recipe:v, recipeId:''}, v ? 'Recipe: ' + v : 'Recipe cleared');
+  }
+  else if (t.dataset.recipesel !== undefined) selectRecipe(lid, t.dataset.recipesel, t.value);
+  else if (t.dataset.rf && routeR()){
+    const rr = routeR(), v = t.value.trim(), f = t.dataset.rf;
+    if (f === 'name' && !v){ t.value = S.RBy[rr].name; return; }
+    if ((S.RBy[rr][f] || '') !== v) setRecipe(rr, {[f]: v}, f === 'status' ? 'Status set to ' + v : 'Edited ' + f);
+  }
+  else if (t.dataset.rproc !== undefined){ S.rproc = t.value; sched(); }
+  else if (t.dataset.rstatus !== undefined){ S.rstatus = t.value; sched(); }
+  else if (t.dataset.sdays !== undefined){
+    const n = parseInt(t.value, 10), v = n > 0 ? n : '', st = stepOf(S.byId[lid], t.dataset.sdays);
+    if (st && (st.days || '') !== v) setStepFields(lid, t.dataset.sdays, {days:v}, v ? 'Time frame: ' + plural(v, 'day') : 'Time frame cleared');
   }
   else if (t.dataset.secdate) setSecDate(lid, t.dataset.secdate, t.dataset.which, t.value);
   else if (t.dataset.sort !== undefined){ S.sortKey = t.value; S.sortDir = t.value === 'name' ? 'asc' : 'desc'; saveView(); sched(); }
@@ -1303,6 +1590,21 @@ document.addEventListener('click', e => {
     case 'opendrive': openDriveLink(); break;
     case 'drivego': { const did = driveId($('#dr-url').value); if (!did){ toast('Paste a Google Drive file link (drive.google.com/file/d/…).'); break; } closeModal(); openViewer('Google Drive file', {drive:did}); break; }
     case 'sortdir': S.sortDir = S.sortDir === 'asc' ? 'desc' : 'asc'; saveView(); sched(); break;
+    case 'gorecipes': location.hash = 'recipes'; break;
+    case 'openrecipe': location.hash = 'r-' + id; break;
+    case 'newrecipe': openNewRecipe(); break;
+    case 'createrecipe': createRecipe(); break;
+    case 'rbodyedit': S.editRBody = true; sched(); break;
+    case 'rbodycancel': S.editRBody = false; sched(); break;
+    case 'rbodysave': { const ta = $app.querySelector('[data-rbody]'); const rr = routeR(); if (ta && rr && (S.RBy[rr].body || '') !== ta.value) setRecipe(rr, {body:ta.value}, 'Edited parameters'); S.editRBody = false; sched(); break; }
+    case 'rattach': openRecipeAttach(routeR()); break;
+    case 'dorattach': doRecipeAttach(id); break;
+    case 'delrfile': arm('rf' + id, () => removeRecipeFile(routeR(), id)); break;
+    case 'raddissue': { const i = $app.querySelector('[data-rissue]'); const v = i.value; i.value = ''; addRecipeIssue(routeR(), v); break; }
+    case 'rresolve': resolveRecipeIssue(routeR(), t.dataset.iid); break;
+    case 'rdelissue': arm('ri' + t.dataset.iid, () => delRecipeIssue(routeR(), t.dataset.iid)); break;
+    case 'rdupe': duplicateRecipe(routeR()); break;
+    case 'rdel': arm('rd' + routeR(), () => deleteRecipe(routeR())); break;
     case 'secnow': setSecDate(lid, t.dataset.sec, t.dataset.which, todayStr()); break;
     case 'dupe': openDuplicate(id); break;
     case 'dodupe': doDuplicate(id); break;

@@ -73,7 +73,7 @@ button{cursor:pointer}
 .group h2{font-size:15px;font-weight:700;margin:0 0 8px;display:flex;gap:8px;align-items:baseline}
 .group h2 span{color:var(--faint);font-weight:500}
 .rows{background:var(--raised);border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
-.row{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1.4fr) minmax(110px,.8fr) minmax(170px,1.1fr);gap:16px;align-items:center;padding:12px 16px;cursor:pointer}
+.row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(120px,.9fr) minmax(200px,1.3fr);gap:16px;align-items:center;padding:12px 16px;cursor:pointer}
 .row+.row{border-top:1px solid var(--line)}
 .row:hover{background:var(--surface)}
 .nm{font-weight:700;font-size:16px;overflow-wrap:anywhere;margin-bottom:3px}
@@ -353,3 +353,33 @@ textarea.txt{width:100%;resize:vertical;display:block}
 .selbox{margin-right:8px;width:17px;height:17px;vertical-align:-2px}
 
 .bar .fld select{padding:6px 8px}
+
+/* ---- recipes ---- */
+.nav{display:flex;gap:4px;background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:3px}
+.nav a{padding:5px 14px;border-radius:7px;text-decoration:none;color:var(--muted);font-weight:600;font-size:14px}
+.nav a.on{background:var(--accent);color:var(--accent-ink)}
+.rrow{grid-template-columns:minmax(0,1.4fr) minmax(0,1.3fr) minmax(110px,.6fr) minmax(130px,.7fr)}
+.ver-tag{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:0 6px;vertical-align:1px}
+.s-recipe a{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:none}
+.s-recipe a:hover{text-decoration:underline}
+.lnk{color:var(--accent);font-weight:600;cursor:pointer}
+.banner.bad{background:var(--fail-bg);color:var(--fail);display:flex;gap:8px;align-items:center;margin:10px 0 0}
+.txt.narrow{width:90px}
+.two select,.two input{width:100%}
+@media (max-width:720px){ .rrow{grid-template-columns:1fr} .nav{order:3;width:100%} .nav a{flex:1;text-align:center} }
+
+/* ---- subtle row tints on the overview: open issues, In fab, Done ---- */
+:root{--tint:7%;--tint-hover:12%}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--tint:13%;--tint-hover:19%} }
+:root[data-theme="dark"]{--tint:13%;--tint-hover:19%}
+.row.tint-issue{background:rgba(177,54,42,.06);background:color-mix(in srgb,var(--fail) var(--tint),var(--raised))}
+.row.tint-fab{background:rgba(39,64,122,.06);background:color-mix(in srgb,var(--accent) var(--tint),var(--raised))}
+.row.tint-done{background:rgba(27,117,86,.06);background:color-mix(in srgb,var(--pass) var(--tint),var(--raised))}
+.row.tint-issue:hover{background:color-mix(in srgb,var(--fail) var(--tint-hover),var(--raised))}
+.row.tint-fab:hover{background:color-mix(in srgb,var(--accent) var(--tint-hover),var(--raised))}
+.row.tint-done:hover{background:color-mix(in srgb,var(--pass) var(--tint-hover),var(--raised))}
+
+/* ---- overdue ---- */
+.tl.late{border-color:var(--fail);color:var(--fail)}
+.tl.late b{color:var(--fail)}
+.sdates .narrow{width:76px}
