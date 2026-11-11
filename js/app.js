@@ -2,7 +2,7 @@
 'use strict';
 
 const CFG = window.FAB_CONFIG || {};
-const BUILD = '2026-11-07-1';
+const BUILD = '2026-11-12-1';
 const LS_KEY = 'fabtracker.v1';
 const MAX_UPLOAD = 25 * 1024 * 1024;
 const SYNC_MS = 30000;
@@ -37,7 +37,7 @@ const S = {
   cfg:null, me:null, canWrite:true, mode:'boot', err:'', setupErr:'',
   srv:{}, pend:{}, queue:{}, busy:{}, L:[], byId:{},
   presets:[], presetsSha:null, loaded:false, syncing:false, lastSync:0,
-  q:'', type:'all', tagFilter:[], editBlock:null, kindFilter:'all', tab:'fab', open:{}, fileStep:'', armed:null,
+  q:'', type:'all', tagFilter:[], sortKey:'updated', sortDir:'desc', group:'status', editBlock:null, selMode:false, sel:[], kindFilter:'all', tab:'fab', open:{}, fileStep:'', armed:null,
   down:false, dirty:false, blobs:{}
 };
 const $ = s => document.querySelector(s);
@@ -58,6 +58,11 @@ function toast(msg){
   clearTimeout(toast.t); toast.t = setTimeout(() => { t.style.display = 'none'; }, 5000);
 }
 const errText = e => (e && e.detail) ? `${e.status}: ${e.detail}` : (e && e.status ? String(e.status) : 'network error');
+
+const VIEW_KEY = 'fabtracker.view';
+try { const v = JSON.parse(localStorage.getItem(VIEW_KEY) || '{}'); if (v.sortKey) S.sortKey = v.sortKey; if (v.sortDir) S.sortDir = v.sortDir; if (v.group) S.group = v.group; } catch (_) {}
+const saveView = () => { try { localStorage.setItem(VIEW_KEY, JSON.stringify({sortKey:S.sortKey, sortDir:S.sortDir, group:S.group})); } catch (_) {} };
+const SORTS = [['updated','Last updated'],['created','Date created'],['name','Name'],['design','Design start'],['fab','Fab start'],['fabend','Fab finish'],['results','Measurement start']];
 
 /* ---------- people ---------- */
 const hue = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) % 360; return `hsl(${h} 42% 38%)`; };
@@ -88,7 +93,7 @@ function rebuild(){
     const p = S.pend[id];
     if (p && p.length){ d = clone(d); p.forEach(x => x.fn(d)); }
     d.id = id; d.steps = d.steps || []; d.files = d.files || []; d.workers = d.workers || [];
-    d.tags = d.tags || []; d.results = d.results || [];
+    d.tags = d.tags || []; d.results = d.results || []; d.dates = d.dates || {};
     d.steps.forEach(s => { s.issues = s.issues || []; });
     S.L.push(d);
   }
@@ -243,6 +248,49 @@ function rmTag(lid, tag){
   const l = S.byId[lid]; if (!l) return;
   mutate(lid, d => { d.tags = (d.tags || []).filter(t => t !== tag); }, `Remove tag ${tag} (${l.name})`);
 }
+/* ---------- section dates, duplicate layout, copy and paste steps ---------- */
+const SECTIONS = [['design','Design'],['fab','Fab'],['results','Measurement']];
+const secOf = (l, k) => (l.dates && l.dates[k]) || {start:'', end:''};
+function setSecDate(lid, key, which, value){
+  const l = S.byId[lid]; if (!l || !['start', 'end'].includes(which)) return;
+  const label = (SECTIONS.find(x => x[0] === key) || [])[1] || key;
+  mutate(lid, d => { d.dates = d.dates || {}; d.dates[key] = d.dates[key] || {start:'', end:''}; d.dates[key][which] = value; },
+    `${label} ${which === 'start' ? 'started' : 'finished'} ${value || 'cleared'} (${l.name})`);
+}
+const CLIP_KEY = 'fabtracker.clip';
+function readClip(){
+  try { const c = JSON.parse(localStorage.getItem(CLIP_KEY) || 'null'); return c && Array.isArray(c.steps) && c.steps.length ? c : null; } catch (_) { return null; }
+}
+function copySteps(lid, ids){
+  const l = S.byId[lid]; if (!l) return;
+  const steps = l.steps.filter(x => ids.includes(x.id)).map(x => ({name:x.name, recipe:x.recipe || ''}));
+  if (!steps.length) return;
+  try { localStorage.setItem(CLIP_KEY, JSON.stringify({steps, from:l.name, at:Date.now()})); } catch (_) { toast('Couldn’t copy (browser storage is blocked).'); return; }
+  toast(`Copied ${steps.length} step${steps.length > 1 ? 's' : ''}. Open any layout and click Paste.`);
+}
+function pasteSteps(lid, afterId){
+  const clip = readClip(), l = S.byId[lid]; if (!clip || !l) return;
+  const add = clip.steps.map(c => Object.assign(newStep(c.name), {recipe:c.recipe || ''}));
+  mutate(lid, d => {
+    if (stepOf(d, add[0].id)) return;
+    const i = afterId ? d.steps.findIndex(x => x.id === afterId) : -1;
+    const copy = clone(add);
+    if (i >= 0) d.steps.splice(i + 1, 0, ...copy); else d.steps.push(...copy);
+  }, `Paste ${add.length} step${add.length > 1 ? 's' : ''} (${l.name})`);
+  toast(`Pasted ${add.length} step${add.length > 1 ? 's' : ''}.`);
+}
+async function duplicateLayout(srcId, o){
+  const src = S.byId[srcId]; if (!src) return null;
+  const id = rid(), t = Date.now();
+  const steps = o.steps ? src.steps.map(x => Object.assign(newStep(x.name), {recipe:o.recipes ? (x.recipe || '') : '', note:o.notes ? (x.note || '') : ''})) : [];
+  const files = o.links ? src.files.filter(f => f.source === 'link' && DESIGN_KINDS.includes(f.kind || 'other')).map(f => Object.assign({}, clone(f), {id:rid(), stepId:'', by:me(), at:t})) : [];
+  const data = {id, name:o.name, type:src.type, status:'planned', purpose:src.purpose || '', tags:src.tags.slice(), workers:[me()],
+    createdBy:me(), createdAt:t, updatedAt:t, dates:{}, steps, files, results:[]};
+  const r = await GH.putJson(layoutPath(id), data, null, `Duplicate layout ${src.name} as ${o.name} [${me()}]`);
+  S.srv[id] = {data, sha:r.sha}; rebuild();
+  return id;
+}
+
 function loadExample(lid){
   const l = S.byId[lid]; if (!l || l.steps.length) return;
   const steps = BASE_STEPS.map(n => newStep(n));
@@ -391,23 +439,44 @@ function matchLayout(l){
   const q = S.q.trim().toLowerCase(); if (!q) return true;
   return [l.name, l.purpose, ...l.tags, ...(l.workers || [])].join(' ').toLowerCase().includes(q);
 }
+function sortLayouts(arr){
+  const dir = S.sortDir === 'asc' ? 1 : -1;
+  const val = l => {
+    switch (S.sortKey){
+      case 'created': return l.createdAt || 0;
+      case 'name': return l.name.toLowerCase();
+      case 'design': return secOf(l, 'design').start || '';
+      case 'fab': return secOf(l, 'fab').start || '';
+      case 'fabend': return secOf(l, 'fab').end || '';
+      case 'results': return secOf(l, 'results').start || '';
+      default: return l.updatedAt || 0;
+    }
+  };
+  return arr.slice().sort((a, b) => {
+    const x = val(a), y = val(b), ex = x === '' || x === 0, ey = y === '' || y === 0;
+    if (ex && ey) return 0; if (ex) return 1; if (ey) return -1;   // layouts without that date always go last
+    return (x < y ? -1 : x > y ? 1 : 0) * dir;
+  });
+}
+function ovRow(l){
+  const st = stats(l), oi = openIssues(l);
+  return `<div class="row" role="link" tabindex="0" data-act="open" data-id="${l.id}">
+        <div><div class="nm">${esc(l.name)}</div><div class="tagrow">${l.type ? `<span class="tag ${l.type}">${l.type === 'active' ? 'Active' : 'Passive'}</span>` : ''}${tagChips(l)}</div></div>
+        <div class="purpose">${esc(l.purpose || 'No description')}</div>
+        <div class="c-who">${l.workers.length ? l.workers.map(w => who(w)).join('') : '<span class="who">Unassigned</span>'}</div>
+        <div class="c-prog">${strip(l)}${tlShort(l)}<small>${st.total ? `${st.pass} of ${st.total} done${st.fail ? ` · ${st.fail} failed` : ''}` : 'No steps yet'}${oi ? ` · <span class="iss">${oi} open issue${oi > 1 ? 's' : ''}</span>` : ''}</small></div>
+      </div>`;
+}
 function ovList(){
   if (!S.L.length){
     return `<div class="empty"><strong>No layouts yet</strong>Add the first layout to start tracking its design, fab steps and results.${S.canWrite ? '<br><button class="btn primary" data-act="newlayout">' + ico('plus') + ' New layout</button>' : ''}</div>`;
   }
-  const list = S.L.filter(matchLayout);
+  const list = sortLayouts(S.L.filter(matchLayout));
   if (!list.length) return '<div class="empty"><strong>Nothing matches</strong>Try a different search, or clear the type and tag filters.</div>';
+  if (S.group === 'none') return `<section class="group"><h2>All layouts <span>${list.length}</span></h2><div class="rows">${list.map(ovRow).join('')}</div></section>`;
   return STATUS.map(([k, label]) => {
     const g = list.filter(l => (l.status || 'planned') === k); if (!g.length) return '';
-    return `<section class="group"><h2>${label} <span>${g.length}</span></h2><div class="rows">${g.map(l => {
-      const st = stats(l), oi = openIssues(l);
-      return `<div class="row" role="link" tabindex="0" data-act="open" data-id="${l.id}">
-        <div><div class="nm">${esc(l.name)}</div><div class="tagrow">${l.type ? `<span class="tag ${l.type}">${l.type === 'active' ? 'Active' : 'Passive'}</span>` : ''}${tagChips(l)}</div></div>
-        <div class="purpose">${esc(l.purpose || 'No description')}</div>
-        <div class="c-who">${l.workers.length ? l.workers.map(w => who(w)).join('') : '<span class="who">Unassigned</span>'}</div>
-        <div class="c-prog">${strip(l)}<small>${st.total ? `${st.pass} of ${st.total} done${st.fail ? ` · ${st.fail} failed` : ''}` : 'No steps yet'}${oi ? ` · <span class="iss">${oi} open issue${oi > 1 ? 's' : ''}</span>` : ''}</small></div>
-      </div>`;
-    }).join('')}</div></section>`;
+    return `<section class="group"><h2>${label} <span>${g.length}</span></h2><div class="rows">${g.map(ovRow).join('')}</div></section>`;
   }).join('');
 }
 function activity(){
@@ -428,6 +497,38 @@ function tagBar(){
   if (!used.length) return '';
   return `<div class="tagbar" role="group" aria-label="Filter by tag"><span class="lbl">Tags</span>${used.map(t => `<button class="tagbtn" data-act="tagfilter" data-tag="${esc(t.name)}" aria-pressed="${S.tagFilter.some(x => x.toLowerCase() === t.name.toLowerCase())}">${esc(t.name)} <span>${t.count}</span></button>`).join('')}${S.tagFilter.length ? '<button class="btn ghost sm" data-act="cleartags">Clear</button>' : ''}</div>`;
 }
+const fmtShort = d => { const [y, m, dd] = String(d).split('-').map(Number); return y ? new Date(y, m - 1, dd).toLocaleDateString(undefined, {month:'short', day:'numeric'}) : ''; };
+const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
+function rangeText(r, full){
+  const f = full ? fmtDate : fmtShort;
+  if (r.start && r.end) return f(r.start) + ' – ' + f(r.end);
+  if (r.start) return f(r.start) + ' – ongoing';
+  if (r.end) return 'Finished ' + f(r.end);
+  return 'not set';
+}
+function timeline(l){
+  return `<div class="timeline" aria-label="Section dates">${SECTIONS.map(([k, t]) => { const r = secOf(l, k); return `<span class="tl ${r.start ? (r.end ? 'done' : 'on') : ''}"><b>${t}</b> ${esc(rangeText(r, true))}</span>`; }).join('')}</div>`;
+}
+function tlShort(l){
+  const parts = SECTIONS.map(([k, t]) => { const r = secOf(l, k); return (r.start || r.end) ? `${t} ${esc(rangeText(r, false))}` : ''; }).filter(Boolean);
+  return parts.length ? `<small class="tls">${parts.join(' · ')}</small>` : '';
+}
+function secDates(l, key){
+  const r = secOf(l, key), ro = S.canWrite ? '' : 'disabled', label = SECTIONS.find(x => x[0] === key)[1];
+  const bad = r.start && r.end && r.end < r.start;
+  const n = r.start && r.end && !bad ? daysBetween(r.start, r.end) + 1 : 0;
+  const dur = n ? `${n} day${n > 1 ? 's' : ''}` : (r.start && !r.end ? `day ${daysBetween(r.start, todayStr()) + 1}` : '');
+  const one = (which, word) => `<label>${word}<input type="date" class="txt" data-secdate="${key}" data-which="${which}" value="${esc(r[which] || '')}" ${ro}></label>${S.canWrite ? `<button class="btn sm" data-act="secnow" data-sec="${key}" data-which="${which}">Today</button>` : ''}`;
+  return `<div class="sdates"><span class="lbl">${label} dates</span>${one('start', 'Started')}${one('end', 'Finished')}${bad ? '<span class="warn">Finish is before start</span>' : dur ? `<span class="dchip">${dur}</span>` : ''}</div>`;
+}
+function fabBar(l){
+  const clip = readClip(), n = clip ? clip.steps.length : 0;
+  const sel = S.selMode
+    ? `<button class="btn primary sm" data-act="copysel" ${S.sel.length ? '' : 'disabled'}>Copy ${S.sel.length} selected</button><button class="btn sm" data-act="selall">Select all</button><button class="btn ghost sm" data-act="selend">Cancel</button>`
+    : (l.steps.length ? '<button class="btn sm" data-act="selstart">Select steps to copy</button>' : '');
+  const paste = S.canWrite && n ? `<button class="btn sm" data-act="pastesteps">Paste ${n} step${n > 1 ? 's' : ''} (from ${esc(clip.from)})</button>` : '';
+  return (sel || paste) ? `<div class="fbar">${sel}${paste}</div>` : '';
+}
 function viewOverview(){
   return topbar(S.canWrite ? `<button class="btn primary" data-act="newlayout">${ico('plus')} New layout</button>` : '') + `
   <div class="bar">
@@ -435,6 +536,9 @@ function viewOverview(){
     <div class="seg" role="group" aria-label="Filter by type">
       ${[['all','All'],['passive','Passive'],['active','Active']].map(([v, l]) => `<button data-act="typefilter" data-v="${v}" aria-pressed="${S.type === v}">${l}</button>`).join('')}
     </div>
+    <label class="fld">Sort <select data-sort aria-label="Sort layouts">${SORTS.map(([k, t]) => `<option value="${k}" ${S.sortKey === k ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+    <button class="btn" data-act="sortdir" title="${S.sortDir === 'asc' ? 'Oldest or A to Z first. Click to reverse.' : 'Newest or Z to A first. Click to reverse.'}" aria-label="Reverse sort order">${ico(S.sortDir === 'asc' ? 'up' : 'down')} ${S.sortDir === 'asc' ? (S.sortKey === 'name' ? 'A–Z' : 'Oldest first') : (S.sortKey === 'name' ? 'Z–A' : 'Newest first')}</button>
+    <label class="fld">Group <select data-group aria-label="Group layouts"><option value="status" ${S.group === 'status' ? 'selected' : ''}>By status</option><option value="none" ${S.group === 'none' ? 'selected' : ''}>No grouping</option></select></label>
     <button class="btn" data-act="openlocal" title="View a GDS file from your computer without uploading it">Open GDS file</button>
     <button class="btn" data-act="opendrive" title="View a GDS file from a Google Drive link">Open from Drive</button>
     ${S.L.length ? '<button class="btn" data-act="export">Export CSV</button>' : ''}
@@ -452,7 +556,7 @@ function stepRow(l, s, i){
   return `<li class="step ${s.state}" data-id="${s.id}">
     <span class="node">${s.state === 'pass' ? ico('check') : s.state === 'fail' ? ico('x') : i + 1}</span>
     <div class="s-main" data-act="toggle" data-id="${s.id}">
-      <div class="s-name">${esc(s.name)}</div>
+      <div class="s-name">${S.selMode ? `<input type="checkbox" class="selbox" data-act="selstep" data-id="${s.id}" ${S.sel.includes(s.id) ? 'checked' : ''} aria-label="Select ${esc(s.name)}">` : ''}${esc(s.name)}</div>
       ${s.recipe ? `<div class="s-recipe"><b>Recipe</b> ${esc(s.recipe)}</div>` : ''}
       ${s.note ? `<div class="s-note">${esc(s.note)}</div>` : ''}
       <div class="s-meta">${s.started ? `<span class="dchip">Started ${fmtDate(s.started)}</span>` : ''}${nOpen ? `<span class="issue-badge">${ico('alert')} ${nOpen} open issue${nOpen > 1 ? 's' : ''}</span>` : ''}${s.at ? `${who(s.by)}<span>${fmt(s.at)}</span>` : (s.started ? '' : '<span>Not started</span>')}${nFiles ? `<button class="chipbtn" data-act="stepfiles" data-id="${s.id}">${nFiles} file${nFiles > 1 ? 's' : ''}</button>` : ''}</div>
@@ -479,6 +583,7 @@ function stepRow(l, s, i){
         <button class="btn" data-act="move" data-dir="-1" data-id="${s.id}" aria-label="Move up">${ico('up')}</button>
         <button class="btn" data-act="move" data-dir="1" data-id="${s.id}" aria-label="Move down">${ico('down')}</button>
         <button class="btn" data-act="attach" data-scope="fab" data-step="${s.id}">${ico('clip')} Attach file</button>
+        <button class="btn" data-act="copyone" data-id="${s.id}">Copy step</button>${readClip() ? `<button class="btn" data-act="pasteafter" data-id="${s.id}">Paste after</button>` : ''}
         <button class="btn danger ${S.armed === 's' + s.id ? 'armed' : ''}" data-act="delstep" data-id="${s.id}">${S.armed === 's' + s.id ? 'Click again to delete' : 'Delete step'}</button>
       </div>
       <div class="tools"><input class="txt" data-after="${s.id}" placeholder="Add a step after this one" aria-label="Add a step after this one"><button class="btn" data-act="addafter" data-id="${s.id}">${ico('plus')} Add</button></div>` : ''}
@@ -492,7 +597,7 @@ function presetChips(){
   return base.concat(cust).join('');
 }
 function tabProcess(l){
-  return `<ol class="steps">${l.steps.map((s, i) => stepRow(l, s, i)).join('')}</ol>` + (S.canWrite ? `
+  return fabBar(l) + `<ol class="steps">${l.steps.map((s, i) => stepRow(l, s, i)).join('')}</ol>` + (S.canWrite ? `
     <div class="addbox">
       <div class="addrow"><input class="txt" data-addstep="${l.id}" placeholder="${l.steps.length ? 'Add another step (any name, as many times as you need)' : 'Add the first step'}" aria-label="New step name"><input type="date" class="txt dateadd" data-addstepdate title="Start date (optional)" aria-label="Start date (optional)"><button class="btn primary" data-act="addstep" data-id="${l.id}">${ico('plus')} Add step</button></div>
       <div class="chips" aria-label="Quick add">${presetChips()}</div>
@@ -565,9 +670,9 @@ function viewDetail(id){
   const ro = !S.canWrite, dis = ro ? 'disabled' : '', st = stats(l), oi = openIssues(l);
   const nDesign = l.files.filter(f => DESIGN_KINDS.includes(f.kind || 'other')).length;
   const tab = ['design', 'fab', 'results'].includes(S.tab) ? S.tab : 'fab';
-  const body = tab === 'design' ? tabFiles(l, 'design') :
-    tab === 'results' ? tabResults(l) :
-    tabProcess(l) + `<section id="fab-files" class="fabfiles"><h3 class="sec">Process images and files</h3>${tabFiles(l, 'fab')}</section>`;
+  const body = tab === 'design' ? secDates(l, 'design') + tabFiles(l, 'design') :
+    tab === 'results' ? secDates(l, 'results') + tabResults(l) :
+    secDates(l, 'fab') + tabProcess(l) + `<section id="fab-files" class="fabfiles"><h3 class="sec">Process images and files</h3>${tabFiles(l, 'fab')}</section>`;
   return topbar() + `
   <button class="btn ghost back" data-act="home">${ico('back')} All layouts</button>
   <div class="dhead">
@@ -584,13 +689,14 @@ function viewDetail(id){
     <textarea class="txt" rows="2" data-f="purpose" placeholder="What is this layout for?" aria-label="Purpose" ${dis}>${esc(l.purpose || '')}</textarea>
     <div class="prog">${strip(l, true)}<div class="sum">${st.total ? `<b>${st.pass} of ${st.total}</b> steps done${st.fail ? `, <b>${st.fail}</b> failed` : ''}` : 'No steps yet'}${oi ? ` · <span class="iss">${oi} open issue${oi > 1 ? 's' : ''}</span>` : ''}</div></div>
   </div>
+  ${timeline(l)}
   <div class="tabs" role="tablist">
     <button role="tab" data-act="tab" data-v="design" aria-selected="${tab === 'design'}">Design${nDesign ? ` (${nDesign})` : ''}</button>
     <button role="tab" data-act="tab" data-v="fab" aria-selected="${tab === 'fab'}">Fab${st.total ? ` (${st.pass}/${st.total})` : ''}</button>
     <button role="tab" data-act="tab" data-v="results" aria-selected="${tab === 'results'}">Results${l.results.length ? ` (${l.results.length})` : ''}</button>
   </div>
   ${body}
-  ${S.canWrite ? `<p style="margin-top:36px"><button class="btn danger ${S.armed === 'l' + id ? 'armed' : ''}" data-act="dellayout" data-id="${id}">${S.armed === 'l' + id ? 'Click again to delete this layout and its files' : 'Delete layout'}</button></p>` : ''}`;
+  ${S.canWrite ? `<p style="margin-top:36px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-act="dupe" data-id="${id}">Duplicate layout</button><button class="btn danger ${S.armed === 'l' + id ? 'armed' : ''}" data-act="dellayout" data-id="${id}">${S.armed === 'l' + id ? 'Click again to delete this layout and its files' : 'Delete layout'}</button></p>` : ''}`;
 }
 
 /* ---------- render loop (never re-render while someone is typing or clicking) ---------- */
@@ -677,6 +783,27 @@ async function createLayout(){
     S.srv[id] = {data, sha:r.sha}; rebuild();
     closeModal(); S.tab = 'fab'; location.hash = 'l-' + id; sched();
   } catch (e){ btn.disabled = false; toast('Couldn’t create the layout (' + errText(e) + ').'); }
+}
+function openDuplicate(lid){
+  const l = S.byId[lid]; if (!l) return;
+  openModal(`<h2>Duplicate layout</h2>
+    <label>New name<input class="txt" id="dp-name"></label>
+    <label class="check"><input type="checkbox" id="dp-steps" checked> Copy the process steps (all reset to not started)</label>
+    <label class="check"><input type="checkbox" id="dp-recipes" checked> Keep each step’s recipe</label>
+    <label class="check"><input type="checkbox" id="dp-notes"> Keep each step’s note</label>
+    <label class="check"><input type="checkbox" id="dp-links"> Keep linked design files (Box or Drive links)</label>
+    <p class="note-s">Type, purpose and tags are always copied. Uploaded files, results, issues, dates and history are not copied. The copy starts as Planned.</p>
+    <div class="acts"><button class="btn" data-act="closemodal">Cancel</button><button class="btn primary" data-act="dodupe" data-id="${lid}">Create copy</button></div>`);
+  $('#dp-name').value = 'Copy of ' + l.name;
+}
+async function doDuplicate(lid){
+  const name = $('#dp-name').value.trim();
+  if (!name){ toast('Give the copy a name.'); return; }
+  const btn = modal.querySelector('[data-act="dodupe"]'); btn.disabled = true;
+  try {
+    const id = await duplicateLayout(lid, {name, steps:$('#dp-steps').checked, recipes:$('#dp-recipes').checked, notes:$('#dp-notes').checked, links:$('#dp-links').checked});
+    closeModal(); S.tab = 'fab'; if (id) location.hash = 'l-' + id; sched();
+  } catch (e){ btn.disabled = false; toast('Couldn’t duplicate the layout (' + errText(e) + ').'); }
 }
 function openAttach(lid, stepId, kind, scope){
   const l = S.byId[lid]; scope = scope || 'fab';
@@ -1045,9 +1172,10 @@ async function doResultImages(lid){
 /* ---------- export ---------- */
 function exportCsv(){
   const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-  const rows = [['Layout','Type','Tags','Status','Purpose','Workers','Step #','Step','Started','Recipe','Result','Open issues','Note','Updated by','Updated at']];
+  const rows = [['Layout','Type','Tags','Status','Design start','Design finish','Fab start','Fab finish','Measurement start','Measurement finish','Purpose','Workers','Step #','Step','Started','Recipe','Result','Open issues','Note','Updated by','Updated at']];
   S.L.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(l => {
-    const base = [l.name, l.type, l.tags.join('; '), l.status, l.purpose, l.workers.join('; ')];
+    const sd = k => [secOf(l, k).start || '', secOf(l, k).end || ''];
+    const base = [l.name, l.type, l.tags.join('; '), l.status, ...sd('design'), ...sd('fab'), ...sd('results'), l.purpose, l.workers.join('; ')];
     if (!l.steps.length) rows.push([...base, '', '', '', '', '', '', '', '', '']);
     l.steps.forEach((s, i) => rows.push([...base, i + 1, s.name, s.started || '', s.recipe || '', stateWord(s.state), s.issues.filter(x => !x.resolved).map(x => x.text).join(' | '), s.note, s.at ? s.by : '', s.at ? new Date(s.at).toISOString() : '']));
   });
@@ -1062,7 +1190,7 @@ const up = () => { if (S.down){ S.down = false; setTimeout(flush, 60); } };
 document.addEventListener('pointerup', up, true);
 document.addEventListener('pointercancel', up, true);
 document.addEventListener('focusout', () => setTimeout(flush, 80));
-window.addEventListener('hashchange', () => { S.fileStep = ''; S.kindFilter = 'all'; S.tab = 'fab'; S.open = {}; S.editBlock = null; sched(); window.scrollTo(0, 0); });
+window.addEventListener('hashchange', () => { S.selMode = false; S.sel = []; S.fileStep = ''; S.kindFilter = 'all'; S.tab = 'fab'; S.open = {}; S.editBlock = null; sched(); window.scrollTo(0, 0); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
 setInterval(() => { if (!document.hidden) sync(); }, SYNC_MS);
 
@@ -1118,6 +1246,9 @@ document.addEventListener('change', e => {
     const s = stepOf(S.byId[lid], t.dataset.recipe), v = t.value.trim();
     if (s && (s.recipe || '') !== v) setStepFields(lid, t.dataset.recipe, {recipe:v}, v ? 'Recipe: ' + v : 'Recipe cleared');
   }
+  else if (t.dataset.secdate) setSecDate(lid, t.dataset.secdate, t.dataset.which, t.value);
+  else if (t.dataset.sort !== undefined){ S.sortKey = t.value; S.sortDir = t.value === 'name' ? 'asc' : 'desc'; saveView(); sched(); }
+  else if (t.dataset.group !== undefined){ S.group = t.value; saveView(); sched(); }
   else if (t.dataset.btitle) updateBlock(lid, t.dataset.btitle, {title:t.value.trim()});
   else if (t.dataset.bcaption) updateBlock(lid, t.dataset.bcaption, {caption:t.value.trim()});
 });
@@ -1171,6 +1302,18 @@ document.addEventListener('click', e => {
     case 'viewdrive': openViewer(t.dataset.name, {drive: driveId(t.dataset.url)}); break;
     case 'opendrive': openDriveLink(); break;
     case 'drivego': { const did = driveId($('#dr-url').value); if (!did){ toast('Paste a Google Drive file link (drive.google.com/file/d/…).'); break; } closeModal(); openViewer('Google Drive file', {drive:did}); break; }
+    case 'sortdir': S.sortDir = S.sortDir === 'asc' ? 'desc' : 'asc'; saveView(); sched(); break;
+    case 'secnow': setSecDate(lid, t.dataset.sec, t.dataset.which, todayStr()); break;
+    case 'dupe': openDuplicate(id); break;
+    case 'dodupe': doDuplicate(id); break;
+    case 'selstart': S.selMode = true; S.sel = []; sched(); break;
+    case 'selend': S.selMode = false; S.sel = []; sched(); break;
+    case 'selall': S.sel = S.byId[lid].steps.map(x => x.id); sched(); break;
+    case 'selstep': { const i = S.sel.indexOf(id); if (i >= 0) S.sel.splice(i, 1); else S.sel.push(id); sched(); break; }
+    case 'copysel': copySteps(lid, S.sel); S.selMode = false; S.sel = []; sched(); break;
+    case 'copyone': copySteps(lid, [id]); sched(); break;
+    case 'pastesteps': pasteSteps(lid); break;
+    case 'pasteafter': pasteSteps(lid, id); break;
     /* results */
     case 'addtext': { const bid = addBlock(lid, {type:'text', title:'', text:''}); S.editBlock = bid; sched(); break; }
     case 'edittext': S.editBlock = id; sched(); break;

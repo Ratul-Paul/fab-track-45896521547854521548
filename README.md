@@ -88,6 +88,10 @@ Every layout has three sections, shown as tabs: **Design**, **Fab** and **Result
   purpose, and **tags**. Tags are free text (Full laser, Passive only, Deep trench, Cleaved, No PECVD
   are suggested, and any tag you type is offered to everyone next time). On the overview page you can
   filter by one or more tags.
+- **Sort and group** (overview page): sort layouts by last updated, date created, name, Design start,
+  Fab start, Fab finish or Measurement start. The arrow button reverses the order, and layouts without
+  that date always go last. **Group** chooses between sections by status and one flat list. Your choice
+  is remembered in your browser.
 - **Design**: GDS, DXF and other design files. Upload them (up to 25 MB; zip or gzip big GDS files) or
   link them from Box or Google Drive. Uploaded GDS files have a **View layout** button.
 - **Fab**: the process steps.
@@ -105,8 +109,19 @@ Every layout has three sections, shown as tabs: **Design**, **Fab** and **Result
   - **Table**: paste from Excel or CSV (first row = column names, up to 2,000 rows).
   - **Plot**: pick a table, then line, scatter or bar, the X column, one or more Y columns and axis
     labels. Download any plot as SVG. **Print report** gives a clean printout or PDF.
+- **Section dates**: each of Design, Fab and Measurement (the Results tab) has **Started** and
+  **Finished** dates at the top, with Today buttons and a day count. A timeline under the layout header
+  shows all three, and the overview shows them in short form.
+- **Duplicate layout** (bottom of a layout page): makes a copy with the same type, purpose and tags.
+  Choose whether to copy the steps (reset to not started), their recipes and notes, and linked design files.
+  Uploaded files, results, issues, dates and history are not copied. The copy starts as Planned.
+- **Copy and paste steps**: on the Fab tab click **Select steps to copy**, tick the steps and click Copy
+  (or open one step and click **Copy step**). In any layout, including the same one, click **Paste**
+  to add them at the end, or **Paste after** inside a step to insert them there. Pasted steps keep the
+  name and recipe and start as not started. The clipboard is kept in your browser, so it also works
+  after a reload or in another tab.
 - Changes by other people appear within 30 seconds, or press **Refresh**.
-- **Export CSV** on the overview page lists every step with tags, start date, recipe and open issues.
+- **Export CSV** on the overview page lists every step with tags, section dates, start date, recipe and open issues.
 
 ## Good to know
 - Two people editing the same layout at once is handled. The app re-reads the latest version

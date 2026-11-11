@@ -335,3 +335,21 @@ textarea.txt{width:100%;resize:vertical;display:block}
   .rblock{break-inside:avoid;box-shadow:none}
   .dhead{border:0;box-shadow:none;padding:0}
 }
+
+/* ---- section dates and timeline ---- */
+.timeline{display:flex;flex-wrap:wrap;gap:8px;margin:-8px 0 16px}
+.tl{font-size:13px;color:var(--muted);background:var(--raised);border:1px solid var(--line);border-radius:99px;padding:3px 12px}
+.tl b{color:var(--ink);margin-right:4px}
+.tl.on{border-color:var(--accent);color:var(--accent)}
+.tl.on b{color:var(--accent)}
+.tl.done{border-color:var(--pass)}
+.tl.done b{color:var(--pass)}
+.sdates{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:16px}
+.sdates label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.sdates .txt{width:auto}
+.warn{color:var(--fail);font-size:13px;font-weight:600}
+.tls{display:block;color:var(--faint);font-size:12px;margin-top:3px}
+.fbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.selbox{margin-right:8px;width:17px;height:17px;vertical-align:-2px}
+
+.bar .fld select{padding:6px 8px}
