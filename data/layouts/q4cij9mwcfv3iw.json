@@ -15,8 +15,21 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794420884120,
- "updatedAt": 1794421141203,
- "steps": [],
+ "updatedAt": 1794421147150,
+ "steps": [
+  {
+   "id": "3qprvumwcg0qha",
+   "name": "EBL patterning",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  }
+ ],
  "files": [
   {
    "id": "jm2ptrmwcfz5yg",
