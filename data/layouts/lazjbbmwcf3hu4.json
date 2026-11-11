@@ -14,7 +14,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794419596300,
- "updatedAt": 1794419863287,
+ "updatedAt": 1794419871162,
  "steps": [
   {
    "id": "hmyb6gmwcf3hu4",
@@ -108,11 +108,18 @@
    "state": "pending",
    "note": "",
    "recipe": "",
-   "started": "",
+   "started": "2026-10-27",
    "issues": [],
-   "by": null,
-   "at": null,
-   "log": []
+   "by": "Ratul-Paul",
+   "at": 1794419871162,
+   "log": [
+    {
+     "by": "Ratul-Paul",
+     "at": 1794419871162,
+     "state": "pending",
+     "note": "Started 2026-10-27"
+    }
+   ]
   },
   {
    "id": "ri7rb8mwcf3hu4",
