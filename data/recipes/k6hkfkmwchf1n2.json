@@ -1,0 +1,21 @@
+{
+ "id": "k6hkfkmwchf1n2",
+ "name": "ZEP Spin Coating",
+ "process": "Spin coating",
+ "version": "1",
+ "status": "active",
+ "tools": "Spin Coater",
+ "body": "",
+ "files": [],
+ "issues": [],
+ "history": [
+  {
+   "by": "Ratul-Paul",
+   "at": 1794423494414,
+   "note": "Created"
+  }
+ ],
+ "createdBy": "Ratul-Paul",
+ "createdAt": 1794423494414,
+ "updatedAt": 1794423494414
+}
