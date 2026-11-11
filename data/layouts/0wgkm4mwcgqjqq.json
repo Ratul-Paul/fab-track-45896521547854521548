@@ -10,8 +10,23 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794422351474,
- "updatedAt": 1794422440686,
- "steps": [],
+ "updatedAt": 1794422554196,
+ "steps": [
+  {
+   "id": "4dbonpmwcguw5w",
+   "name": "Spin coating",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "recipeId": "",
+   "days": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  }
+ ],
  "files": [],
  "results": [],
  "dates": {
