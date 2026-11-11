@@ -15,8 +15,22 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794420884120,
- "updatedAt": 1794420884120,
+ "updatedAt": 1794421078803,
  "steps": [],
- "files": [],
- "results": []
+ "files": [
+  {
+   "id": "jm2ptrmwcfz5yg",
+   "name": "IMSE_202609_Chip_01_passive_layer_1_with_alignment.gds",
+   "kind": "gds",
+   "stepId": "",
+   "source": "repo",
+   "path": "data/files/q4cij9mwcfv3iw/gds/jm2ptrmwcfz5yg-IMSE_202609_Chip_01_passive_layer_1_with_alignment.gds",
+   "size": 5525364,
+   "note": "",
+   "by": "Ratul-Paul",
+   "at": 1794421078803
+  }
+ ],
+ "results": [],
+ "dates": {}
 }
