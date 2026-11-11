@@ -15,7 +15,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794420884120,
- "updatedAt": 1794421515912,
+ "updatedAt": 1794421529731,
  "steps": [
   {
    "id": "3qprvumwcg0qha",
@@ -115,6 +115,18 @@
      "note": ""
     }
    ]
+  },
+  {
+   "id": "d4chcnmwcg8xoj",
+   "name": "Deep trench",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "2026-09-27",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
   }
  ],
  "files": [
