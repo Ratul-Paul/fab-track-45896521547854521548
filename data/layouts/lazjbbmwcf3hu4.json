@@ -14,7 +14,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794419596300,
- "updatedAt": 1794419847423,
+ "updatedAt": 1794419860110,
  "steps": [
   {
    "id": "hmyb6gmwcf3hu4",
@@ -57,12 +57,12 @@
    "id": "1uk72bmwcf3hu4",
    "name": "Etching",
    "state": "pending",
-   "note": "400 W ICP, 60 W Bias (200v), 5 mTorr pressure, 12 sccm Ar for 8.5 min (200 nm etch)",
+   "note": "400 W ICP, 60 W Bias (200v), 5 mTorr pressure, 12 sccm Ar for 8.5 min (200 nm etch)\nNo issues. ",
    "recipe": "RP Ar P Etch Strike 2",
    "started": "2026-10-27",
    "issues": [],
    "by": "Ratul-Paul",
-   "at": 1794419847423,
+   "at": 1794419860110,
    "log": [
     {
      "by": "Ratul-Paul",
@@ -87,6 +87,12 @@
      "at": 1794419847423,
      "state": "pending",
      "note": "400 W ICP, 60 W Bias (200v), 5 mTorr pressure, 12 sccm Ar for 8.5 min (200 nm etch)"
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794419860110,
+     "state": "pending",
+     "note": "400 W ICP, 60 W Bias (200v), 5 mTorr pressure, 12 sccm Ar for 8.5 min (200 nm etch)\nNo issues. "
     }
    ]
   },
