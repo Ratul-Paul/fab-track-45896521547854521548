@@ -15,7 +15,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794420884120,
- "updatedAt": 1794421193514,
+ "updatedAt": 1794421195906,
  "steps": [
   {
    "id": "3qprvumwcg0qha",
@@ -53,6 +53,18 @@
      "note": ""
     }
    ]
+  },
+  {
+   "id": "qdj69hmwcg1s3m",
+   "name": "Etching",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
   }
  ],
  "files": [
