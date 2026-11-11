@@ -15,7 +15,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794420884120,
- "updatedAt": 1794421557564,
+ "updatedAt": 1794421558490,
  "steps": [
   {
    "id": "3qprvumwcg0qha",
@@ -138,14 +138,27 @@
   {
    "id": "gczupumwcg9j5o",
    "name": "Dicing and Polishing",
-   "state": "pending",
+   "state": "pass",
    "note": "",
    "recipe": "",
    "started": "2026-09-28",
    "issues": [],
-   "by": null,
-   "at": null,
-   "log": []
+   "by": "Ratul-Paul",
+   "at": 1794421558490,
+   "log": [
+    {
+     "by": "Ratul-Paul",
+     "at": 1794421558490,
+     "state": "pass",
+     "note": ""
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794421558490,
+     "state": "pass",
+     "note": ""
+    }
+   ]
   }
  ],
  "files": [
