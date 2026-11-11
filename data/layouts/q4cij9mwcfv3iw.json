@@ -15,18 +15,18 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794420884120,
- "updatedAt": 1794421190936,
+ "updatedAt": 1794421193514,
  "steps": [
   {
    "id": "3qprvumwcg0qha",
    "name": "EBL patterning",
-   "state": "pending",
+   "state": "pass",
    "note": "Standard Line follow protocol 5nA 3nm \nNo Issues",
    "recipe": "HSQ 100 nm DLC",
    "started": "2026-09-24",
    "issues": [],
    "by": "Ratul-Paul",
-   "at": 1794421190936,
+   "at": 1794421193514,
    "log": [
     {
      "by": "Ratul-Paul",
@@ -45,6 +45,12 @@
      "at": 1794421190936,
      "state": "pending",
      "note": "Standard Line follow protocol 5nA 3nm \nNo Issues"
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794421193514,
+     "state": "pass",
+     "note": ""
     }
    ]
   }
