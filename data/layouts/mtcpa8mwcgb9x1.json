@@ -14,7 +14,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794421638901,
- "updatedAt": 1794421701280,
+ "updatedAt": 1794421729496,
  "dates": {
   "design": {
    "start": "2026-11-04",
@@ -204,6 +204,19 @@
    "log": []
   }
  ],
- "files": [],
+ "files": [
+  {
+   "id": "ihkuq8mwcgd3v7",
+   "name": "LN_MZI_101526_base_v3_2_PC_20261103.gds",
+   "kind": "gds",
+   "stepId": "",
+   "source": "repo",
+   "path": "data/files/mtcpa8mwcgb9x1/gds/ihkuq8mwcgd3v7-LN_MZI_101526_base_v3_2_PC_20261103.gds",
+   "size": 4305692,
+   "note": "",
+   "by": "Ratul-Paul",
+   "at": 1794421729496
+  }
+ ],
  "results": []
 }
