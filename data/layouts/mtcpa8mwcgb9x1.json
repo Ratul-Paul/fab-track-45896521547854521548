@@ -14,7 +14,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794421638901,
- "updatedAt": 1794421653330,
+ "updatedAt": 1794421654881,
  "dates": {},
  "steps": [
   {
@@ -58,14 +58,21 @@
   {
    "id": "utn01dmwcgb9x1",
    "name": "Redeposition removal",
-   "state": "pending",
+   "state": "pass",
    "note": "RCA clean 2:2:2 Ammonium Hydroxide 20% + H2O2 + DI at 85C for 15 min\nNo issues ",
    "recipe": "",
    "started": "",
    "issues": [],
-   "by": null,
-   "at": null,
-   "log": []
+   "by": "Ratul-Paul",
+   "at": 1794421654881,
+   "log": [
+    {
+     "by": "Ratul-Paul",
+     "at": 1794421654881,
+     "state": "pass",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "34bmb5mwcgb9x1",
