@@ -5,7 +5,7 @@
  "version": "1",
  "status": "active",
  "tools": "",
- "body": "",
+ "body": "Clean chip:\n\n1. 5 min 75C Acetone with ultrasound\n2. 5 min IPA with ultrasound\n3. DI water flow\n4. Blow dry\n5. Bake at 100C for 5 min\n6. Cool down.\n\nSpin coat:\n\n1. No dispense \n2. 3000 rpm with 3000 acceleration\n3. Spin coat for 60 sec\n4. 0 rpm in 5 seconds",
  "files": [],
  "issues": [],
  "history": [
@@ -28,9 +28,14 @@
    "by": "Ratul-Paul",
    "at": 1794423039550,
    "note": "Edited version"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794423158446,
+   "note": "Edited parameters"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794422539199,
- "updatedAt": 1794423039550
+ "updatedAt": 1794423158446
 }
