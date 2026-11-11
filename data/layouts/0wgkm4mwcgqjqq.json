@@ -2,7 +2,7 @@
  "id": "0wgkm4mwcgqjqq",
  "name": "Test",
  "type": "passive",
- "status": "ready",
+ "status": "infab",
  "purpose": "",
  "tags": [],
  "workers": [
@@ -10,7 +10,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794422351474,
- "updatedAt": 1794422383630,
+ "updatedAt": 1794422387692,
  "steps": [],
  "files": [],
  "results": [],
