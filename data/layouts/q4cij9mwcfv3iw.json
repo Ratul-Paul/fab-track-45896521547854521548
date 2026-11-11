@@ -2,7 +2,7 @@
  "id": "q4cij9mwcfv3iw",
  "name": "MMI and Delay Line Check",
  "type": "passive",
- "status": "infab",
+ "status": "ready",
  "purpose": "",
  "tags": [
   "MMI Sweep",
@@ -15,7 +15,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794420884120,
- "updatedAt": 1794421558490,
+ "updatedAt": 1794421572727,
  "steps": [
   {
    "id": "3qprvumwcg0qha",
