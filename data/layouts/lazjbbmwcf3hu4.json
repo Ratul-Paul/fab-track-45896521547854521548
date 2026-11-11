@@ -5,14 +5,15 @@
  "status": "planned",
  "purpose": "",
  "tags": [
-  "Full Laser and passive"
+  "Full Laser and passive",
+  "deep trench needed"
  ],
  "workers": [
   "Ratul-Paul"
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794419596300,
- "updatedAt": 1794419596300,
+ "updatedAt": 1794419609722,
  "steps": [
   {
    "id": "tqeqpjmwcf3hu4",
