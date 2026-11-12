@@ -48,6 +48,14 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794485247559,
- "updatedAt": 1794488079817,
- "comments": []
+ "updatedAt": 1794488132369,
+ "comments": [
+  {
+   "id": "4b3uhrmwdjwglt",
+   "text": "In 100 nm features the dose factor should be almost 1.5x after a proper PEC compared to 1.02x in 800 nm straight line.",
+   "by": "Ratul-Paul",
+   "at": 1794488132369,
+   "parentId": ""
+  }
+ ]
 }
