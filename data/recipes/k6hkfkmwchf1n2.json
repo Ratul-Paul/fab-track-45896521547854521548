@@ -6,18 +6,7 @@
  "status": "active",
  "tools": "Spin Coater",
  "body": "",
- "files": [
-  {
-   "id": "ws0tgsmwdgpumw",
-   "name": "pan_778x200_20s.mp4",
-   "source": "repo",
-   "path": "data/files/recipes/k6hkfkmwchf1n2/ws0tgsmwdgpumw-pan_778x200_20s.mp4",
-   "size": 702656,
-   "note": "",
-   "by": "Ratul-Paul",
-   "at": 1794482787355
-  }
- ],
+ "files": [],
  "issues": [],
  "history": [
   {
@@ -28,5 +17,5 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794423494414,
- "updatedAt": 1794482787355
+ "updatedAt": 1794482793741
 }
