@@ -5,7 +5,7 @@
  "version": "1",
  "status": "active",
  "tools": "Oxford PlasmaLab 100",
- "body": "#Etch \n\nRecipe Name: RP SiN Etch Strike 2\n- Gas: CHF3 45 sccm and O2 5 sccm\n- Pressure (strike): 15 mTorr\n- Pressure: 4 mTorr\n- Power (ICP): 250 W\n- Power (Bias): 25 W/ 159V\n- Temperature: -20 °C\n- Flow (Back Helium): 3.1 sccm\n",
+ "body": "#Etch \nRecipe Name: RP SiN Etch Strike 2\n- Gas: CHF3 45 sccm and O2 5 sccm\n- Pressure (strike): 15 mTorr\n- Pressure: 4 mTorr\n- Power (ICP): 250 W\n- Power (Bias): 25 W/ 159V\n- Temperature: -20 °C\n- Flow (Back Helium): 3.1 sccm\n\n#Etch Rate:\nZEP520a: 133 nm/min\nStoichiometric Silicon Nitride: \n",
  "files": [
   {
    "id": "apz5thmwdjhshe",
@@ -24,10 +24,15 @@
    "by": "Ratul-Paul",
    "at": 1794487440675,
    "note": "Created"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794487737940,
+   "note": "Edited parameters"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794487440675,
- "updatedAt": 1794487451007,
+ "updatedAt": 1794487737940,
  "comments": []
 }
