@@ -12,7 +12,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794491909685,
- "updatedAt": 1794492030331,
+ "updatedAt": 1794492127929,
  "steps": [
   {
    "id": "njnphwmwdm78i5",
@@ -95,7 +95,19 @@
    "at": 1794491963642
   }
  ],
- "results": [],
+ "results": [
+  {
+   "id": "mjkdukmwdma1di",
+   "type": "image",
+   "title": "",
+   "caption": "",
+   "name": "hsq_4000rpm_3600uc_1min_az400k_1.jpg",
+   "path": "data/files/ykks7omwdm5f79/results/mjkdukmwdma1di-hsq_4000rpm_3600uc_1min_az400k_1.jpg",
+   "size": 4870398,
+   "by": "Ratul-Paul",
+   "at": 1794492127929
+  }
+ ],
  "dates": {
   "design": {
    "start": "2026-10-12",
