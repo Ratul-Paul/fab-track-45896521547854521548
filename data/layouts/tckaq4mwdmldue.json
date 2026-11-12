@@ -1,6 +1,6 @@
 {
  "id": "tckaq4mwdmldue",
- "name": "Copy of Bragg Grating Test With SiN HSQ 16% 200 nm Etch",
+ "name": "Bragg Grating Test With SiN HSQ 16% 200 nm Etch v2",
  "type": "passive",
  "status": "planned",
  "purpose": "",
@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794492654422,
- "updatedAt": 1794492654422,
+ "updatedAt": 1794492663975,
  "dates": {},
  "steps": [
   {
@@ -74,5 +74,6 @@
   }
  ],
  "files": [],
- "results": []
+ "results": [],
+ "comments": []
 }
