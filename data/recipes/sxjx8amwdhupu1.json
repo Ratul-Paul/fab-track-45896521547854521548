@@ -5,7 +5,7 @@
  "version": "",
  "status": "draft",
  "tools": "Spin Coater",
- "body": "Spin coat:\n1. No spreading step \n2. 1800 rpm with 1000 acceleration\n3. Spin coat for 60 sec\n4. 0 rpm in 5 seconds\n\nBake:\n180°C for 3 min.\n\nDischarge:\n1. Cool down for 1 min\n2. Dispense Discharge H2O (make sure there is no bubble and cover the entire chip)\n3. No spreading step\n4. 3000 rpm with 5000 acceleration\n5. 0 rpm in 5 sec\n\nResults:\n600 nm",
+ "body": "Spin coat:\n1. No spreading step \n2. 3000 rpm with 1000 acceleration\n3. Spin coat for 60 sec\n4. 0 rpm in 5 seconds\n\nBake:\n180°C for 3 min.\n\nDischarge:\n1. Cool down for 1 min\n2. Dispense Discharge H2O (make sure there is no bubble and cover the entire chip)\n3. No spreading step\n4. 3000 rpm with 5000 acceleration\n5. 0 rpm in 5 sec\n\nResults:\n600 nm",
  "files": [],
  "issues": [],
  "history": [
@@ -23,10 +23,15 @@
    "by": "Ratul-Paul",
    "at": 1794484733005,
    "note": "Edited name"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794484753386,
+   "note": "Edited parameters"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794484691785,
- "updatedAt": 1794484733005,
+ "updatedAt": 1794484753386,
  "comments": []
 }
