@@ -2,7 +2,7 @@
  "id": "ykks7omwdm5f79",
  "name": "Bragg Grating Test With SiN DLC",
  "type": "passive",
- "status": "infab",
+ "status": "done",
  "purpose": "",
  "tags": [
   "Bragg Grating",
@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794491909685,
- "updatedAt": 1794492235652,
+ "updatedAt": 1794492245576,
  "steps": [
   {
    "id": "njnphwmwdm78i5",
