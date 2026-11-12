@@ -6,18 +6,7 @@
  "status": "active",
  "tools": "Spin Coater",
  "body": "Clean chip:\n\n1. 5 min 75C Acetone with ultrasound\n2. 5 min IPA with ultrasound\n3. DI water flow\n4. Blow dry\n5. Bake at 100C for 5 min\n6. Cool down.\n\nSpin coat:\n\n1. No spreading step \n2. 3000 rpm with 3000 acceleration\n3. Spin coat for 60 sec\n4. 0 rpm in 5 seconds\n\nBake:\n100 C for 1 min.\n\nDischarge:\n1. Cool down for 1 min\n2. Dispense Discharge H2O (make sure there is no bubble and cover the entire chip)\n3. No spreading step\n4. 3000 rpm with 5000 acceleration\n5. 0 rpm in 5 sec\n\nResults:\n100 nm after coating and 85 nm after baking \n",
- "files": [
-  {
-   "id": "0orwfdmwdgecm2",
-   "name": "1.jpg",
-   "source": "repo",
-   "path": "data/files/recipes/g79qrimwcp3zux/0orwfdmwdgecm2-1.jpg",
-   "size": 510049,
-   "note": "",
-   "by": "Ratul-Paul",
-   "at": 1794482250670
-  }
- ],
+ "files": [],
  "issues": [],
  "history": [
   {
@@ -53,5 +42,5 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794436415817,
- "updatedAt": 1794482273896
+ "updatedAt": 1794482274805
 }
