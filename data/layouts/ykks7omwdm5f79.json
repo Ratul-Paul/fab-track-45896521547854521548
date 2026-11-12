@@ -2,7 +2,7 @@
  "id": "ykks7omwdm5f79",
  "name": "Bragg Grating Test With SiN DLC",
  "type": "passive",
- "status": "ready",
+ "status": "infab",
  "purpose": "",
  "tags": [
   "Bragg Grating"
@@ -12,21 +12,28 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794491909685,
- "updatedAt": 1794491994317,
+ "updatedAt": 1794491996202,
  "steps": [
   {
    "id": "njnphwmwdm78i5",
    "name": "Spin coating",
-   "state": "pending",
+   "state": "pass",
    "note": "",
    "recipe": "",
    "recipeId": "",
    "days": "",
    "started": "",
    "issues": [],
-   "by": null,
-   "at": null,
-   "log": []
+   "by": "Ratul-Paul",
+   "at": 1794491996202,
+   "log": [
+    {
+     "by": "Ratul-Paul",
+     "at": 1794491996202,
+     "state": "pass",
+     "note": ""
+    }
+   ]
   }
  ],
  "files": [
