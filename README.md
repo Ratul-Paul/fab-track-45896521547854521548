@@ -113,9 +113,17 @@ Every layout has three sections, shown as tabs: **Design**, **Fab** and **Result
   - **Table**: paste from Excel or CSV (first row = column names, up to 2,000 rows).
   - **Plot**: pick a table, then line, scatter or bar, the X column, one or more Y columns and axis
     labels. Download any plot as SVG. **Print report** gives a clean printout or PDF.
+- **Videos**: attach MP4 or WebM videos like any other file (type **Video** on the Fab tab, the Results tab, or a
+  recipe's files) and click **Play video** to watch them in a pop-up player, as with images. Up to 25 MB each, so
+  compress longer clips. MOV files may not play in every browser (convert to MP4). Videos are loaded in full before
+  they play. A Google Drive link to a video can play inside the page too, if you have access to it in Drive.
 - **Recipe library** (the **Recipes** tab at the top): save your process recipes once and reuse them.
   - Each recipe has a name, process (for example Etching), version, status (Active, Draft or Retired),
     equipment, and **parameters and procedure** (text with `- bullets`, `# headings`, `**bold**`).
+  - The parameters editor colours fab terms as you type: values with units (100 W, 30 mTorr, 40 / 5 sccm, 60 s,
+    115 °C), gases and materials (SF6, O2, HF, TMAH, Au, resists), process words (etch, bake, spin, liftoff) and
+    warnings (NOTE, WARNING). Insert buttons add common lines (Gas, Power, Pressure, Time, Spin, Bake, Dose...).
+    Lines written as `Key: value` show as a tidy parameter list on the recipe page.
   - Attach **files** (uploads up to 25 MB, or Box and Drive links), for example a recipe exported from the tool.
   - A recipe can have its own **issues**, which you report and mark resolved or reopened, just like on a step.
   - The page lists every **layout and step that uses the recipe**, and a **history** of who changed what.

@@ -383,3 +383,50 @@ textarea.txt{width:100%;resize:vertical;display:block}
 .tl.late{border-color:var(--fail);color:var(--fail)}
 .tl.late b{color:var(--fail)}
 .sdates .narrow{width:76px}
+
+/* ---- video ---- */
+.thumb.play{background:#0f141c;color:#fff;border:0;cursor:pointer}
+.thumb.play .ico{width:26px;height:26px;fill:currentColor}
+.thumb.play:hover{background:var(--accent)}
+.gdsview.vid{background:#000;padding:0}
+.gdsview video{width:100%;height:100%;display:block;background:#000}
+.gdsview iframe{width:100%;height:100%;border:0}
+.rvid{display:flex;align-items:center;gap:12px;width:100%;max-width:520px;border:1px solid var(--line-strong);background:#0f141c;color:#fff;border-radius:10px;padding:26px 18px;font-weight:600;text-align:left}
+.rvid .ico{width:30px;height:30px;fill:currentColor;flex:none}
+.rvid:hover{background:var(--accent)}
+
+/* ---- recipe editor and fab term highlighting ---- */
+.lbl2{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px}
+.hl-editor{display:grid;gap:8px}
+.hl-tools{display:flex;flex-wrap:wrap;gap:6px}
+.chip-btn{border:1px solid var(--line-strong);background:var(--raised);border-radius:99px;padding:2px 11px;font-size:13px;font-weight:500}
+.chip-btn:hover{border-color:var(--ink)}
+.hl-wrap{position:relative;border:1px solid var(--line-strong);border-radius:8px;background:var(--surface)}
+.hl-back,.hl-front{margin:0;padding:10px 12px;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre;tab-size:2;letter-spacing:0;width:100%;height:300px;border:0;box-sizing:border-box;overflow:auto}
+.hl-back{position:absolute;inset:0;overflow:hidden;pointer-events:none;color:var(--ink);padding-bottom:30px}
+.hl-front{position:relative;display:block;background:transparent;color:transparent;caret-color:var(--ink);resize:vertical;outline:none;min-height:140px}
+.hl-front::placeholder{color:var(--faint)}
+.hl-front::selection{background:color-mix(in srgb,var(--accent) 35%,transparent)}
+.hl-wrap:focus-within{outline:2px solid var(--accent);outline-offset:1px}
+.hl-num{color:var(--passive)}
+.hl-chem{color:var(--active)}
+.hl-proc{color:var(--accent)}
+.hl-warn{color:var(--fail)}
+.hl-key{color:var(--muted)}
+.hl-h{color:var(--ink);font-weight:700}
+.hl-dim{color:var(--faint)}
+.hl-back .hl-num{background:color-mix(in srgb,var(--passive) 14%,transparent);border-radius:3px}
+.hl-back .hl-warn{background:color-mix(in srgb,var(--fail) 12%,transparent);border-radius:3px}
+.hl-legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;margin-top:8px}
+.hl-legend span{font-weight:600}
+.prose.recipe .hl-num,.prose.recipe .hl-chem,.prose.recipe .hl-proc,.prose.recipe .hl-warn{font-weight:600}
+.prose.recipe .hl-num{background:color-mix(in srgb,var(--passive) 12%,transparent);border-radius:4px;padding:0 3px}
+.prose.recipe .hl-warn{background:color-mix(in srgb,var(--fail) 10%,transparent);border-radius:4px;padding:0 3px}
+.rh{margin:16px 0 6px;font-size:16px;padding-bottom:4px;border-bottom:2px solid var(--accent-soft)}
+.kvlist{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:2px 14px;margin:6px 0 10px}
+.kv{display:grid;grid-template-columns:minmax(110px,190px) 1fr;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.kv:last-child{border-bottom:0}
+.kv .k{font-weight:600;color:var(--muted)}
+.kv.warnrow{background:var(--fail-bg);margin:0 -14px;padding-left:14px;padding-right:14px}
+.kv.warnrow .k{color:var(--fail)}
+@media (max-width:720px){ .kv{grid-template-columns:1fr;gap:2px} }

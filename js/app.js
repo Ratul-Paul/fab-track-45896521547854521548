@@ -2,7 +2,7 @@
 'use strict';
 
 const CFG = window.FAB_CONFIG || {};
-const BUILD = '2026-11-15-1';
+const BUILD = '2026-11-16-1';
 const LS_KEY = 'fabtracker.v1';
 const MAX_UPLOAD = 25 * 1024 * 1024;
 const SYNC_MS = 30000;
@@ -15,7 +15,7 @@ const BASE_STEPS = [
 ];
 const BASE_TAGS = ['Full laser','Passive only','Deep trench','Cleaved','No PECVD'];
 const STATUS = [['planned','Planned'],['ready','Ready'],['infab','In fab'],['measuring','Measuring'],['done','Done']];
-const KINDS = [['gds','GDS layout'],['dxf','DXF drawing'],['design','Other design file'],['sem','SEM image'],['scope','Microscope image'],['other','Other']];
+const KINDS = [['gds','GDS layout'],['dxf','DXF drawing'],['design','Other design file'],['sem','SEM image'],['scope','Microscope image'],['video','Video'],['other','Other']];
 const DESIGN_KINDS = ['gds','dxf','design'];
 const kindsFor = scope => KINDS.filter(([k]) => (scope === 'design') === DESIGN_KINDS.includes(k));
 const ICO = {
@@ -29,6 +29,7 @@ const ICO = {
   download:'<path d="M8 2.5v7M4.8 6.8L8 10l3.2-3.2M3 13h10"/>',
   external:'<path d="M9 3h4v4M13 3L7.5 8.5M11 9.5V13H3V5h3.5"/>',
   alert:'<path d="M8 2l6.5 11.5h-13L8 2z"/><path d="M8 6.5v3M8 11.6v.1"/>',
+  play:'<path d="M5 3l8 5-8 5z"/>',
   clip:'<path d="M13 7.5l-5 5a3 3 0 01-4.2-4.2l5.5-5.5a2 2 0 012.9 2.9L6.7 11.2a1 1 0 01-1.4-1.4L10 5.1"/>'
 };
 const ico = n => `<svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[n]}</svg>`;
@@ -255,6 +256,117 @@ function rmTag(lid, tag){
   const l = S.byId[lid]; if (!l) return;
   mutate(lid, d => { d.tags = (d.tags || []).filter(t => t !== tag); }, `Remove tag ${tag} (${l.name})`);
 }
+/* ---------- video playback ---------- */
+const VIDEO_RE = /\.(mp4|m4v|webm|mov|ogv)$/i;
+const VIDEO_MIME = {mp4:'video/mp4', m4v:'video/mp4', webm:'video/webm', mov:'video/quicktime', ogv:'video/ogg'};
+function videoUrl(path, name){
+  const key = 'v:' + path;
+  if (!S.blobs[key]){
+    const ext = (name.split('.').pop() || '').toLowerCase();
+    S.blobs[key] = GH.getBlob(path).then(b => URL.createObjectURL(new Blob([b], {type:VIDEO_MIME[ext] || 'video/mp4'})));
+  }
+  return S.blobs[key];
+}
+async function openVideo(name, source){
+  openModal(`<h2>${esc(name)}</h2><div id="vid-host" class="gdsview vid">Loading video…</div>
+    <div class="acts">${source.path ? `<button class="btn" data-act="download" data-path="${esc(source.path)}" data-name="${esc(name)}">${ico('download')} Download</button>` : ''}<button class="btn primary" data-act="closemodal">Close</button></div>`, 'vw');
+  try {
+    if (source.drive){
+      const h = $('#vid-host'); if (!h) return;
+      h.innerHTML = `<iframe src="https://drive.google.com/file/d/${encodeURIComponent(source.drive)}/preview" allow="autoplay; fullscreen" allowfullscreen title="${esc(name)}"></iframe>`;
+      return;
+    }
+    const url = await videoUrl(source.path, name);
+    const h = $('#vid-host'); if (!h) return;
+    h.innerHTML = `<video controls autoplay playsinline src="${esc(url)}"></video>`;
+    const v = h.querySelector('video');
+    if (v) v.onerror = () => { h.textContent = 'This browser can’t play this video format. Download it and convert it to MP4 (H.264) or WebM.'; };
+  } catch (e){ const h = $('#vid-host'); if (h) h.textContent = 'Couldn’t load the video (' + errText(e) + ').'; }
+}
+
+/* ---------- fab term highlighting and recipe rendering ---------- */
+const HL_UNITS = 'seconds?|minutes?|hours?|sccm|slm|mTorr|Torr|mbar|kPa|Pa|kW|mW\\/cm²|mW|W|kV|mV|V|mA|µA|uA|nA|pA|A|kHz|MHz|GHz|Hz|krpm|rpm|sec|ms|min|hrs?|h|s|°C|°|K|nm|µm|um|mm|cm|Å|%|mL|ml|µL|µl|uL|L|mg|µg|ug|g|keV|eV|µC\\/cm²|uC\\/cm²|µC\\/cm2|uC\\/cm2|mJ\\/cm²|J\\/cm²';
+const HL_CHEM = 'SF6|CF4|CHF3|C4F8|C2F6|NF3|N2O|N2|O2|Ar|He|H2|Cl2|BCl3|HBr|NH3|SiH4|TEOS|TMA|BOE|HF|HCl|H2SO4|H2O2|HNO3|KOH|TMAH|IPA|MIBK|NMP|PMMA|HSQ|ZEP\\d*|SU-?8|S18\\d\\d|AZ\\s?\\d+\\w*|ma-?N\\s?\\d+|PMGI|LOR\\w*|MF-?\\d+|CD-?\\d+|DI\\s?water|acetone|isopropanol|methanol|ethanol|toluene|photoresist|resist|developer|SiO2|SiO|Si3N4|SiN|ITO|Al2O3|HfO2|TiN|Si|Ti|Au|Pt|Al|Cu|Cr|Ni|Ag|Pd';
+const HL_PROC = 'spin(?:ning)?|spin-?coat\\w*|coat(?:ing)?|bake|expos\\w+|develop\\w*|etch\\w*|ICP|RIE|DRIE|PECVD|LPCVD|CVD|ALD|sputter\\w*|evaporat\\w+|e-?beam|EBL|lift-?off|strip\\w*|ash(?:ing)?|descum|clean\\w*|rinse|dicing|dice|polish\\w*|anneal\\w*|oxide|nitride|metal\\w*|deposit\\w+|overlay|alignment|align|mask|litho\\w*|RTA|RTP|plasma|vacuum|dry|wet';
+const HL_WARN = 'WARNING|CAUTION|DANGER|IMPORTANT|NOTE|DO NOT|DON(?:\'|&#39;)T|NEVER|HAZARD\\w*|TOXIC|CORROSIVE';
+const FAB_RE = new RegExp(
+  '(?<warn>(?<![\\w])(?:' + HL_WARN + ')(?![\\w]))' +
+  '|(?<num>(?<![\\w.])\\d+(?:[.,]\\d+)?(?:\\s*[\\/:×–-]\\s*\\d+(?:[.,]\\d+)?)*\\s?(?:' + HL_UNITS + ')(?![A-Za-z0-9²³µ°]))' +
+  '|(?<chem>(?<![\\w])(?:' + HL_CHEM + ')(?![\\w]))' +
+  '|(?<proc>(?<![\\w])(?:' + HL_PROC + ')(?![\\w]))', 'gi');
+function hlText(t){
+  return String(t).replace(FAB_RE, (...a) => {
+    const g = a[a.length - 1], x = a[0];
+    if (g.warn) return `<span class="hl-warn">${x}</span>`;
+    if (g.num) return `<span class="hl-num">${x}</span>`;
+    if (g.chem){
+      if (x.length <= 2 && x === x.toLowerCase()) return x;   // lowercase "ar", "he", "al", "si" are ordinary words; "Ar", "He", "HF" are chemistry
+      return `<span class="hl-chem">${x}</span>`;
+    }
+    if (g.proc) return `<span class="hl-proc">${x}</span>`;
+    return x;
+  });
+}
+const WARN_KEY = /^\s*(warning|caution|danger|important|note|hazard)\s*$/i;
+function hlSegment(t){
+  const m = t.match(/^([^:<>]{1,32}):(?=\s|$)/);
+  if (!m) return hlText(t);
+  return `<span class="${WARN_KEY.test(m[1]) ? 'hl-warn' : 'hl-key'}">${m[1]}:</span>` + hlText(t.slice(m[0].length));
+}
+const hlEditorLine = raw => {
+  const e = esc(raw);
+  if (/^#{1,3}\s/.test(e)) return `<span class="hl-h">${e}</span>`;
+  const b = e.match(/^(\s*[-*]\s)(.*)$/);
+  return b ? `<span class="hl-dim">${b[1]}</span>${hlSegment(b[2])}` : hlSegment(e);
+};
+const hlEditorHtml = v => String(v).replace(/\r/g, '').split('\n').map(hlEditorLine).join('\n');
+/* Rendered recipe: headings, "Key: value" lines as a parameter list, bullets and paragraphs, with fab terms highlighted. */
+function recipeHtml(text){
+  let out = '', mode = '';
+  const close = () => { if (mode === 'kv') out += '</div>'; else if (mode === 'ul') out += '</ul>'; mode = ''; };
+  for (const raw of String(text || '').replace(/\r/g, '').split('\n')){
+    const e = esc(raw);
+    const h = e.match(/^#{1,3}\s+(.*)$/);
+    if (h){ close(); out += `<h4 class="rh">${inlineMd(hlSegment(h[1]))}</h4>`; continue; }
+    const b = e.match(/^\s*[-*]\s+(.*)$/), body = b ? b[1] : e;
+    const kv = body.match(/^([^:<>]{1,40}):(?:\s+(.*)|$)/);
+    if (kv && body.trim()){
+      if (mode !== 'kv'){ close(); out += '<div class="kvlist">'; mode = 'kv'; }
+      out += `<div class="kv ${WARN_KEY.test(kv[1]) ? 'warnrow' : ''}"><span class="k">${kv[1]}</span><span class="v">${inlineMd(hlText(kv[2] || ''))}</span></div>`;
+      continue;
+    }
+    if (b){ if (mode !== 'ul'){ close(); out += '<ul>'; mode = 'ul'; } out += `<li>${inlineMd(hlSegment(body))}</li>`; continue; }
+    if (!e.trim()){ close(); continue; }
+    close(); out += `<p>${inlineMd(hlSegment(e))}</p>`;
+  }
+  close(); return out;
+}
+const FAB_SNIPPETS = [['Heading','# ',0],['Gas','- Gas: ',0],['Flow','- Flow:  sccm',5],['Power','- Power:  W',2],['Pressure','- Pressure:  mTorr',6],
+  ['Temperature','- Temperature:  °C',3],['Time','- Time:  s',2],['Spin','- Spin: 4000 rpm, 60 s',0],['Bake','- Bake: 115 °C, 60 s',0],
+  ['Dose','- Dose:  µC/cm²',7],['Thickness','- Thickness:  nm',3],['Developer','- Developer: ',0],['Note','- NOTE: ',0]];
+const HL_LEGEND = '<div class="hl-legend"><span class="hl-num">values and units</span><span class="hl-chem">gases and materials</span><span class="hl-proc">process terms</span><span class="hl-warn">warnings</span></div>';
+function hlEditorBlock(id, value, toolbar){
+  return `<div class="hl-editor">${toolbar ? `<div class="hl-tools" role="toolbar" aria-label="Insert a parameter line">${FAB_SNIPPETS.map(([l], i) => `<button type="button" class="chip-btn" data-act="rins" data-i="${i}">+ ${l}</button>`).join('')}</div>` : ''}
+    <div class="hl-wrap"><pre class="hl-back" aria-hidden="true"></pre><textarea class="hl-front" ${id ? `id="${id}"` : ''} data-rbody spellcheck="false" wrap="off" placeholder="# Etch&#10;- Gas: SF6 / O2, 40 / 5 sccm&#10;- Power: 100 W&#10;- Pressure: 30 mTorr&#10;- Time: 60 s&#10;- NOTE: chamber clean first">${esc(value)}</textarea></div>
+    ${HL_LEGEND}</div>`;
+}
+function syncEditor(ta){
+  const pre = ta.parentElement && ta.parentElement.querySelector('.hl-back'); if (!pre) return;
+  pre.innerHTML = hlEditorHtml(ta.value) + '\n';
+  pre.scrollTop = ta.scrollTop; pre.scrollLeft = ta.scrollLeft;
+}
+function initEditors(){ document.querySelectorAll('.hl-front').forEach(syncEditor); }
+function insertSnippet(ta, i){
+  const [, text, back] = FAB_SNIPPETS[i], v = ta.value, pos = ta.selectionStart == null ? v.length : ta.selectionStart;
+  const lineStart = v.lastIndexOf('\n', pos - 1) + 1, lineEnd = v.indexOf('\n', pos);
+  const cur = v.slice(lineStart, lineEnd < 0 ? v.length : lineEnd);
+  let at = pos, ins = text;
+  if (cur.trim() !== ''){ at = lineEnd < 0 ? v.length : lineEnd; ins = '\n' + text; }
+  ta.value = v.slice(0, at) + ins + v.slice(at);
+  const caret = at + ins.length - back;
+  ta.focus(); ta.setSelectionRange(caret, caret); syncEditor(ta);
+}
+
 /* ---------- recipe library ---------- */
 const rKey = id => 'r~' + id;
 const recipeVer = r => r.version ? (/^\d/.test(r.version) ? 'v' + r.version : r.version) : '';
@@ -393,7 +505,7 @@ async function deleteLayout(lid){
   try {
     await (S.queue[lid] || Promise.resolve());
     const l = S.srv[lid].data;
-    const paths = (l.files || []).filter(f => f.source === 'repo').map(f => f.path).concat((l.results || []).filter(b => b.type === 'image' && b.path).map(b => b.path));
+    const paths = (l.files || []).filter(f => f.source === 'repo').map(f => f.path).concat((l.results || []).filter(b => (b.type === 'image' || b.type === 'video') && b.path).map(b => b.path));
     for (const p of paths){ try { await GH.del(p, `Delete file [${me()}]`); } catch (_) {} }
     await GH.delWithSha(layoutPath(lid), S.srv[lid].sha, `Delete layout ${l.name} [${me()}]`);
     delete S.srv[lid]; rebuild(); location.hash = 'overview';
@@ -420,7 +532,7 @@ function delBlock(lid, bid){
   const l = S.byId[lid], b = l && l.results.find(x => x.id === bid); if (!b) return;
   mutate(lid, d => {
     d.results = (d.results || []).filter(x => x.id !== bid);
-  }, `Delete results block (${l.name})`).then(() => { if (b.type === 'image' && b.path) GH.del(b.path, `Delete image [${me()}]`).catch(() => {}); });
+  }, `Delete results block (${l.name})`).then(() => { if ((b.type === 'image' || b.type === 'video') && b.path) GH.del(b.path, `Delete media [${me()}]`).catch(() => {}); });
 }
 function moveBlock(lid, bid, dir){
   mutate(lid, d => {
@@ -677,12 +789,13 @@ function recipePicker(s, ro){
 function recipeFileCard(r, f){
   const isImg = f.source === 'repo' && /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(f.name);
   const ext = (f.name.split('.').pop() || 'file').toUpperCase().slice(0, 4);
+  const isVid = f.source === 'repo' && VIDEO_RE.test(f.name);
   return `<div class="file">
-    ${isImg ? `<button class="thumb" data-act="lightbox" data-path="${esc(f.path)}" data-name="${esc(f.name)}" aria-label="View ${esc(f.name)}"><img data-path="${esc(f.path)}" alt="${esc(f.name)}"></button>` : `<div class="thumb">${esc(ext)}</div>`}
+    ${isImg ? `<button class="thumb" data-act="lightbox" data-path="${esc(f.path)}" data-name="${esc(f.name)}" aria-label="View ${esc(f.name)}"><img data-path="${esc(f.path)}" alt="${esc(f.name)}"></button>` : isVid ? `<button class="thumb play" data-act="playvideo" data-path="${esc(f.path)}" data-name="${esc(f.name)}" aria-label="Play ${esc(f.name)}">${ico('play')}</button>` : `<div class="thumb">${esc(ext)}</div>`}
     <div><div class="fn">${esc(f.name)}</div>
       ${f.note ? `<div class="fm">${esc(f.note)}</div>` : ''}
       <div class="fm">${who(f.by)} · ${fmt(f.at)}${f.size ? ' · ' + (f.size / 1048576 >= 1 ? (f.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(f.size / 1024)) + ' KB') : ''}${f.source === 'link' ? ' · Link' : ''}</div>
-      <div class="fa">${f.source === 'link' ? `<a class="btn sm" href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${ico('external')} Open link</a>` : `<button class="btn sm" data-act="download" data-path="${esc(f.path)}" data-name="${esc(f.name)}">${ico('download')} Download</button>`}</div></div>
+      <div class="fa">${f.source === 'link' ? `<a class="btn sm" href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${ico('external')} Open link</a>` : `${isVid ? `<button class="btn primary sm" data-act="playvideo" data-path="${esc(f.path)}" data-name="${esc(f.name)}">${ico('play')} Play video</button> ` : ''}<button class="btn sm" data-act="download" data-path="${esc(f.path)}" data-name="${esc(f.name)}">${ico('download')} Download</button>`}</div></div>
     ${S.canWrite ? `<button class="btn ghost sm danger ${S.armed === 'rf' + f.id ? 'armed' : ''}" data-act="delrfile" data-id="${f.id}">${S.armed === 'rf' + f.id ? 'Click again to remove' : 'Remove'}</button>` : ''}
   </div>`;
 }
@@ -735,8 +848,8 @@ function viewRecipe(id){
 
   <h3 class="sec">Parameters and procedure</h3>
   ${S.editRBody
-    ? `<textarea class="txt" rows="12" data-rbody placeholder="Write the parameters and procedure, e.g.&#10;# Etch&#10;- Gas: SF6 / O2, 40 / 5 sccm&#10;- Power: 100 W, 30 mTorr&#10;- Time: 60 s">${esc(r.body || '')}</textarea><div class="tools" style="margin-top:8px"><button class="btn primary" data-act="rbodysave">Save</button><button class="btn" data-act="rbodycancel">Cancel</button></div>`
-    : `<div class="rblock"><div class="rbody"><div class="prose">${mdLite(r.body || '') || '<p class="hint">Nothing written yet.</p>'}</div>${S.canWrite ? '<div class="tools"><button class="btn" data-act="rbodyedit">Edit parameters</button></div>' : ''}</div></div>`}
+    ? `${hlEditorBlock('', r.body || '', true)}<div class="tools" style="margin-top:8px"><button class="btn primary" data-act="rbodysave">Save</button><button class="btn" data-act="rbodycancel">Cancel</button></div>`
+    : `<div class="rblock"><div class="rbody"><div class="prose recipe">${recipeHtml(r.body || '') || '<p class="hint">Nothing written yet.</p>'}</div>${r.body ? HL_LEGEND : ''}${S.canWrite ? '<div class="tools"><button class="btn" data-act="rbodyedit">Edit parameters</button></div>' : ''}</div></div>`}
 
   <h3 class="sec">Files</h3>
   ${S.canWrite ? `<div class="rbar"><button class="btn" data-act="rattach">${ico('clip')} Add a file or link</button></div>` : ''}
@@ -821,16 +934,18 @@ function stepLabel(l, f){
 }
 function fileCard(l, f){
   const isImg = f.source === 'repo' && /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(f.name);
+  const isVid = f.source === 'repo' && (f.kind === 'video' || VIDEO_RE.test(f.name));
+  const isDriveVid = f.source === 'link' && driveId(f.url) && (f.kind === 'video' || VIDEO_RE.test(f.name));
   const kind = (KINDS.find(k => k[0] === (f.kind || 'other')) || KINDS[3])[1];
   return `<div class="file">
-    ${isImg ? `<button class="thumb" data-act="lightbox" data-path="${esc(f.path)}" data-name="${esc(f.name)}" aria-label="View ${esc(f.name)}"><img data-path="${esc(f.path)}" alt="${esc(f.name)}"></button>` : `<div class="thumb">${esc((f.kind || 'file').toUpperCase().slice(0, 4))}</div>`}
+    ${isImg ? `<button class="thumb" data-act="lightbox" data-path="${esc(f.path)}" data-name="${esc(f.name)}" aria-label="View ${esc(f.name)}"><img data-path="${esc(f.path)}" alt="${esc(f.name)}"></button>` : isVid ? `<button class="thumb play" data-act="playvideo" data-path="${esc(f.path)}" data-name="${esc(f.name)}" aria-label="Play ${esc(f.name)}">${ico('play')}</button>` : `<div class="thumb">${esc((f.kind || 'file').toUpperCase().slice(0, 4))}</div>`}
     <div><div class="fn">${esc(f.name)}</div>
       <div class="fm">${kind} · ${esc(stepLabel(l, f))}${f.source === 'link' ? ' · Link' : ''}${f.size ? ' · ' + (f.size / 1048576 >= 1 ? (f.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(f.size / 1024)) + ' KB') : ''}</div>
       ${f.note ? `<div class="fm">${esc(f.note)}</div>` : ''}
       <div class="fm">${who(f.by)} · ${fmt(f.at)}</div>
       <div class="fa">${f.source === 'link'
-        ? `${isDriveGds(f) ? `<button class="btn primary sm" data-act="viewdrive" data-url="${esc(f.url)}" data-name="${esc(f.name)}">${ico('eye')} View layout</button>` : ''}<a class="btn sm" href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${ico('external')} Open link</a>`
-        : `${isGds(f) ? `<button class="btn primary sm" data-act="viewgds" data-path="${esc(f.path)}" data-name="${esc(f.name)}">${ico('eye')} View layout</button>` : ''}<button class="btn sm" data-act="download" data-path="${esc(f.path)}" data-name="${esc(f.name)}">${ico('download')} Download</button>`}</div></div>
+        ? `${isDriveVid ? `<button class="btn primary sm" data-act="playdrive" data-url="${esc(f.url)}" data-name="${esc(f.name)}">${ico('play')} Play video</button>` : ''}${isDriveGds(f) ? `<button class="btn primary sm" data-act="viewdrive" data-url="${esc(f.url)}" data-name="${esc(f.name)}">${ico('eye')} View layout</button>` : ''}<a class="btn sm" href="${esc(f.url)}" target="_blank" rel="noopener noreferrer">${ico('external')} Open link</a>`
+        : `${isVid ? `<button class="btn primary sm" data-act="playvideo" data-path="${esc(f.path)}" data-name="${esc(f.name)}">${ico('play')} Play video</button>` : ''}${isGds(f) ? `<button class="btn primary sm" data-act="viewgds" data-path="${esc(f.path)}" data-name="${esc(f.name)}">${ico('eye')} View layout</button>` : ''}<button class="btn sm" data-act="download" data-path="${esc(f.path)}" data-name="${esc(f.name)}">${ico('download')} Download</button>`}</div></div>
     ${S.canWrite ? `<button class="btn ghost sm danger ${S.armed === 'f' + f.id ? 'armed' : ''}" data-act="delfile" data-id="${f.id}">${S.armed === 'f' + f.id ? 'Click again to remove' : 'Remove'}</button>` : ''}
   </div>`;
 }
@@ -937,6 +1052,7 @@ function render(){
     if (el){ el.focus(); try { el.setSelectionRange(sel[0], sel[1]); } catch (_) {} }
   }
   hydrateThumbs();
+  initEditors();
 }
 
 /* ---------- repo files (private repos need the token to download) ---------- */
@@ -1002,8 +1118,9 @@ function openNewRecipe(){
       <label>Version<input class="txt" id="nr-ver" placeholder="e.g. 1"></label></div>
     <div class="two"><label>Equipment<input class="txt" id="nr-tools" placeholder="Tool or machine"></label>
       <label>Status<select id="nr-status"><option value="active">Active</option><option value="draft">Draft</option></select></label></div>
-    <label>Parameters and procedure (optional)<textarea class="txt" id="nr-body" rows="6" placeholder="- Gas: SF6 / O2, 40 / 5 sccm&#10;- Power: 100 W&#10;- Time: 60 s"></textarea></label>
+    <div class="lbl2">Parameters and procedure (optional)</div>${hlEditorBlock('nr-body', '', true)}
     <div class="acts"><button class="btn" data-act="closemodal">Cancel</button><button class="btn primary" data-act="createrecipe">Create recipe</button></div>`, 'wide');
+  initEditors();
 }
 async function createRecipe(){
   const name = $('#nr-name').value.trim();
@@ -1086,7 +1203,7 @@ function openAttach(lid, stepId, kind, scope){
     <label>Source<select id="at-src"><option value="upload">Upload from this computer</option><option value="link">Link from Box or Google Drive</option></select></label>
     <div id="at-up">
       <label>Files<input type="file" id="at-file" multiple></label>
-      <p class="note-s">Uploads are saved in the data repository, up to 25 MB each. Large GDS files: compress them to <b>.zip</b> or <b>.gds.gz</b> first (they usually shrink a lot). Set the type to <b>GDS layout</b>; the viewer unpacks them automatically.</p>
+      <p class="note-s">Uploads are saved in the data repository, up to 25 MB each. Videos (MP4 or WebM) play right in the browser. Large GDS files: compress them to <b>.zip</b> or <b>.gds.gz</b> first (they usually shrink a lot). Set the type to <b>GDS layout</b>; the viewer unpacks them automatically.</p>
     </div>
     <div id="at-ln" hidden>
       <label>Link<input class="txt" id="at-url" placeholder="https://…" inputmode="url"></label>
@@ -1326,12 +1443,14 @@ function mdLite(text){
 }
 function blockCard(l, b, i, n){
   const rw = S.canWrite, editing = S.editBlock === b.id;
-  const label = {text:'Text', image:'Image', table:'Table', plot:'Plot'}[b.type] || b.type;
+  const label = {text:'Text', image:'Image', video:'Video', table:'Table', plot:'Plot'}[b.type] || b.type;
   let body = '';
   if (b.type === 'text'){
     body = editing
       ? `<textarea class="txt" rows="9" data-btext="${b.id}" placeholder="Write the results here. You can use - bullets, # headings and **bold**.">${esc(b.text || '')}</textarea><div class="tools"><button class="btn primary" data-act="savetext" data-id="${b.id}">Save</button><button class="btn" data-act="canceltext">Cancel</button></div>`
       : `<div class="prose">${mdLite(b.text || '') || '<p class="hint">Empty. Click Edit to write.</p>'}</div>`;
+  } else if (b.type === 'video'){
+    body = `<button class="rvid" data-act="playvideo" data-path="${esc(b.path)}" data-name="${esc(b.name || 'video')}" aria-label="Play video">${ico('play')}<span>${esc(b.name || 'Video')}</span></button><input class="txt cap" data-bcaption="${b.id}" value="${esc(b.caption || '')}" placeholder="Caption" aria-label="Caption" ${rw ? '' : 'disabled'}>`;
   } else if (b.type === 'image'){
     body = `<button class="rimg" data-act="lightbox" data-path="${esc(b.path)}" data-name="${esc(b.name || '')}" aria-label="Enlarge image"><img data-path="${esc(b.path)}" alt="${esc(b.caption || b.name || '')}"></button><input class="txt cap" data-bcaption="${b.id}" value="${esc(b.caption || '')}" placeholder="Caption" aria-label="Caption" ${rw ? '' : 'disabled'}>`;
   } else if (b.type === 'table'){
@@ -1416,18 +1535,18 @@ function downloadPlot(bid){
   document.body.appendChild(a); a.click(); a.remove();
 }
 function openResultImage(lid){
-  openModal(`<h2>Add images to results</h2>
-    <label>Images<input type="file" id="ri-file" multiple accept="image/*"></label>
+  openModal(`<h2>Add images or videos to results</h2>
+    <label>Images or videos<input type="file" id="ri-file" multiple accept="image/*,video/mp4,video/webm,video/quicktime,.mp4,.m4v,.webm,.mov"></label>
     <label>Caption (optional)<input class="txt" id="ri-cap" placeholder="e.g. Ring resonator, 1550 nm sweep"></label>
-    <p class="note-s">PNG, JPEG, WebP, GIF or SVG, up to 25 MB each. Saved in the data repository under <b>${esc(dataDir())}/files/&lt;layout&gt;/results/</b>.</p>
+    <p class="note-s">PNG, JPEG, WebP, GIF or SVG images, or MP4 or WebM videos, up to 25 MB each. Saved in the data repository under <b>${esc(dataDir())}/files/&lt;layout&gt;/results/</b>.</p>
     <div class="acts"><button class="btn" data-act="closemodal">Cancel</button><button class="btn primary" data-act="doresultimg" data-id="${lid}">Add</button></div>`);
 }
 async function doResultImages(lid){
   const list = [...$('#ri-file').files], cap = $('#ri-cap').value.trim();
   const btn = modal.querySelector('[data-act="doresultimg"]');
   if (!list.length){ toast('Choose an image first.'); return; }
-  const bad = list.find(f => !/\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(f.name) || f.size > MAX_UPLOAD);
-  if (bad){ toast(bad.name + ' isn’t an image under 25 MB.'); return; }
+  const bad = list.find(f => !(/\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(f.name) || VIDEO_RE.test(f.name)) || f.size > MAX_UPLOAD);
+  if (bad){ toast(bad.name + ' isn’t an image or video under 25 MB.'); return; }
   btn.disabled = true;
   try {
     for (let i = 0; i < list.length; i++){
@@ -1435,7 +1554,7 @@ async function doResultImages(lid){
       const f = list[i], bid = rid();
       const path = `${dataDir()}/files/${lid}/results/${bid}-${f.name.replace(/[^A-Za-z0-9._-]+/g, '_')}`;
       await GH.putBytes(path, await fileB64(f), `Add result image ${f.name} [${me()}]`);
-      addBlock(lid, {id:bid, type:'image', title:'', caption:cap, name:f.name, path, size:f.size});
+      addBlock(lid, {id:bid, type:VIDEO_RE.test(f.name) ? 'video' : 'image', title:'', caption:cap, name:f.name, path, size:f.size});
     }
     closeModal();
   } catch (e){ btn.disabled = false; btn.textContent = 'Add'; toast('Couldn’t add the image (' + errText(e) + ').'); }
@@ -1464,6 +1583,7 @@ document.addEventListener('pointerup', up, true);
 document.addEventListener('pointercancel', up, true);
 document.addEventListener('focusout', () => setTimeout(flush, 80));
 window.addEventListener('hashchange', () => { S.selMode = false; S.sel = []; S.editRBody = false; S.fileStep = ''; S.kindFilter = 'all'; S.tab = 'fab'; S.open = {}; S.editBlock = null; sched(); window.scrollTo(0, 0); });
+document.addEventListener('scroll', e => { const t = e.target; if (t && t.classList && t.classList.contains('hl-front')) syncEditor(t); }, true);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
 setInterval(() => { if (!document.hidden) sync(); }, SYNC_MS);
 
@@ -1505,6 +1625,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('input', e => {
   const t = e.target;
   if (t.dataset.live === 'q'){ S.q = t.value; $('#ovlist').innerHTML = ovList(); }
+  else if (t.dataset.rbody !== undefined) syncEditor(t);
   else if (t.dataset.live === 'rq'){ S.rq = t.value; $('#rlist').innerHTML = rList(); }
   else if (t.name === 'repo'){ const l = $('#tokenlink'); if (l) l.href = tokenLink(t.value.split('/')[0].trim()); }
 });
@@ -1605,6 +1726,9 @@ document.addEventListener('click', e => {
     case 'rdelissue': arm('ri' + t.dataset.iid, () => delRecipeIssue(routeR(), t.dataset.iid)); break;
     case 'rdupe': duplicateRecipe(routeR()); break;
     case 'rdel': arm('rd' + routeR(), () => deleteRecipe(routeR())); break;
+    case 'playvideo': openVideo(t.dataset.name, {path:t.dataset.path}); break;
+    case 'playdrive': openVideo(t.dataset.name, {drive: driveId(t.dataset.url)}); break;
+    case 'rins': { const box = t.closest('.hl-editor'), ta = box && box.querySelector('.hl-front'); if (ta) insertSnippet(ta, +t.dataset.i); break; }
     case 'secnow': setSecDate(lid, t.dataset.sec, t.dataset.which, todayStr()); break;
     case 'dupe': openDuplicate(id); break;
     case 'dodupe': doDuplicate(id); break;
