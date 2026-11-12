@@ -12,7 +12,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794491909685,
- "updatedAt": 1794491996858,
+ "updatedAt": 1794491998177,
  "steps": [
   {
    "id": "njnphwmwdm78i5",
@@ -38,16 +38,29 @@
   {
    "id": "f7q7u9mwdm7agq",
    "name": "EBL patterning",
-   "state": "pending",
+   "state": "pass",
    "note": "",
    "recipe": "",
    "recipeId": "",
    "days": "",
    "started": "",
    "issues": [],
-   "by": null,
-   "at": null,
-   "log": []
+   "by": "Ratul-Paul",
+   "at": 1794491998177,
+   "log": [
+    {
+     "by": "Ratul-Paul",
+     "at": 1794491998177,
+     "state": "pass",
+     "note": ""
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794491998177,
+     "state": "pass",
+     "note": ""
+    }
+   ]
   }
  ],
  "files": [
