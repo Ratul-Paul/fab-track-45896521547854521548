@@ -5,7 +5,7 @@
  "version": "1",
  "status": "draft",
  "tools": "Elionix ELS-S50EX",
- "body": "Dose: 300 µC/cm² (cold development 0 °C)\nBeam current: 1 nA\nBeam step size: 2 nm\nField size: 500um to 1000um\nField overlap: Depends on the component, usually 10-50um\nField needs to be controlled for following line. \n\n",
+ "body": "Dose: 3500 µC/cm²\nBeam current: 5 nA 120 aperture \nBeam step size: 3 nm - 4nm\nField size: 500um to 1000um\nField overlap: Depends on the component, usually 10-50um\nPEC: absolutely necessery. Mid range needs to be activated with Nue of 0.1\nField needs to be controlled for following line. \n\n",
  "files": [],
  "issues": [],
  "history": [
@@ -23,10 +23,15 @@
    "by": "Ratul-Paul",
    "at": 1794485265945,
    "note": "Edited version"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794485317011,
+   "note": "Edited parameters"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794485247559,
- "updatedAt": 1794485265945,
+ "updatedAt": 1794485317011,
  "comments": []
 }
