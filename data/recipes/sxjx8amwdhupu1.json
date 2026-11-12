@@ -2,7 +2,7 @@
  "id": "sxjx8amwdhupu1",
  "name": "ZEP 520A Spin Coating (400 nm)",
  "process": "Spin coating",
- "version": "",
+ "version": "1",
  "status": "draft",
  "tools": "Spin Coater",
  "body": "Spin coat:\n1. No spreading step \n2. 3000 rpm with 1000 acceleration\n3. Spin coat for 60 sec\n4. 0 rpm in 5 seconds\n\nBake:\n180°C for 3 min.\n\nDischarge:\n1. Cool down for 1 min\n2. Dispense Discharge H2O (make sure there is no bubble and cover the entire chip)\n3. No spreading step\n4. 3000 rpm with 5000 acceleration\n5. 0 rpm in 5 sec\n\nResults:\n600 nm",
@@ -39,10 +39,15 @@
    "by": "Ratul-Paul",
    "at": 1794484753386,
    "note": "Edited parameters"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794484951941,
+   "note": "Edited version"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794484691785,
- "updatedAt": 1794484787918,
+ "updatedAt": 1794484951941,
  "comments": []
 }
