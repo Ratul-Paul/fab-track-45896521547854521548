@@ -1,6 +1,6 @@
 {
  "id": "qn2hbemwdi6mo7",
- "name": "EBL Patterning ZEP 520a (copy)",
+ "name": "EBL Patterning HSQ",
  "process": "EBL patterning",
  "version": "",
  "status": "draft",
@@ -13,9 +13,15 @@
    "by": "Ratul-Paul",
    "at": 1794485247559,
    "note": "Duplicated from EBL Patterning ZEP 520a v1"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794485258891,
+   "note": "Edited name"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794485247559,
- "updatedAt": 1794485247559
+ "updatedAt": 1794485258891,
+ "comments": []
 }
