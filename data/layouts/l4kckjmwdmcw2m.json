@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794492258142,
- "updatedAt": 1794492299988,
+ "updatedAt": 1794492300835,
  "dates": {},
  "steps": [
   {
@@ -82,16 +82,29 @@
   {
    "id": "bacmi9mwdmdsd0",
    "name": "HSQ Stripping with BOE",
-   "state": "pending",
+   "state": "pass",
    "note": "",
    "recipe": "",
    "recipeId": "",
    "days": "",
    "started": "",
    "issues": [],
-   "by": null,
-   "at": null,
-   "log": []
+   "by": "Ratul-Paul",
+   "at": 1794492300835,
+   "log": [
+    {
+     "by": "Ratul-Paul",
+     "at": 1794492300835,
+     "state": "pass",
+     "note": ""
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794492300835,
+     "state": "pass",
+     "note": ""
+    }
+   ]
   }
  ],
  "files": [],
