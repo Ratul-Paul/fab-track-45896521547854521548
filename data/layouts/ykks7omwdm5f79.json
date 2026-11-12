@@ -12,8 +12,23 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794491909685,
- "updatedAt": 1794491909685,
+ "updatedAt": 1794491963642,
  "steps": [],
- "files": [],
- "results": []
+ "files": [
+  {
+   "id": "d3z2swmwdm6gls",
+   "name": "in_house_WBG_HSQ.gds",
+   "kind": "gds",
+   "stepId": "",
+   "source": "repo",
+   "path": "data/files/ykks7omwdm5f79/gds/d3z2swmwdm6gls-in_house_WBG_HSQ.gds",
+   "size": 11597680,
+   "note": "",
+   "by": "Ratul-Paul",
+   "at": 1794491963642
+  }
+ ],
+ "results": [],
+ "dates": {},
+ "comments": []
 }
