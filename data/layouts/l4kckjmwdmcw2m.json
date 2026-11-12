@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794492258142,
- "updatedAt": 1794492352261,
+ "updatedAt": 1794492416163,
  "dates": {
   "fab": {
    "start": "2026-10-29",
@@ -116,7 +116,20 @@
    ]
   }
  ],
- "files": [],
+ "files": [
+  {
+   "id": "k8t6s8mwdmg7mf",
+   "name": "250nm_HSQ_SiN_200etch_5000uCcm2.jpg",
+   "kind": "sem",
+   "stepId": "2j90sxmwdmcw2m",
+   "source": "repo",
+   "path": "data/files/l4kckjmwdmcw2m/sem/k8t6s8mwdmg7mf-250nm_HSQ_SiN_200etch_5000uCcm2.jpg",
+   "size": 4767927,
+   "note": "",
+   "by": "Ratul-Paul",
+   "at": 1794492416163
+  }
+ ],
  "results": [],
  "comments": []
 }
