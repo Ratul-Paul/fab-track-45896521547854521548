@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794492258142,
- "updatedAt": 1794492506964,
+ "updatedAt": 1794492596769,
  "dates": {
   "fab": {
    "start": "2026-10-29",
@@ -132,6 +132,18 @@
    "note": "5000 uC/cm2 was used, so overdosed. Probably could have used 3600",
    "by": "Ratul-Paul",
    "at": 1794492453718
+  },
+  {
+   "id": "43uw8smwdmk3ut",
+   "name": "in_house_WBG_slab_SiN_v1.zip",
+   "kind": "gds",
+   "stepId": "",
+   "source": "repo",
+   "path": "data/files/l4kckjmwdmcw2m/gds/43uw8smwdmk3ut-in_house_WBG_slab_SiN_v1.zip",
+   "size": 1457204,
+   "note": "",
+   "by": "Ratul-Paul",
+   "at": 1794492596769
   }
  ],
  "results": [
