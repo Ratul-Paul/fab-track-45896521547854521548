@@ -122,7 +122,7 @@ Every layout has three sections, shown as tabs: **Design**, **Fab** and **Result
     equipment, and **parameters and procedure** (text with `- bullets`, `# headings`, `**bold**`).
   - The parameters editor colours fab terms as you type: values with units (100 W, 30 mTorr, 40 / 5 sccm, 60 s,
     115 °C), gases and materials (SF6, O2, HF, TMAH, Au, resists), process words (etch, bake, spin, liftoff) and
-    warnings (NOTE, WARNING). Insert buttons add common lines (Gas, Power, Pressure, Time, Spin, Bake, Dose...).
+    warnings (NOTE, WARNING). Insert buttons add common lines (Gas, Power, Pressure, Time, Spin, Bake, Dose, and for e-beam work Beam current, Beam size, Step size, Dwell time, Write field, Aperture, Acceleration voltage).
     Lines written as `Key: value` show as a tidy parameter list on the recipe page.
   - Attach **files** (uploads up to 25 MB, or Box and Drive links), for example a recipe exported from the tool.
   - A recipe can have its own **issues**, which you report and mark resolved or reopened, just like on a step.

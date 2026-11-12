@@ -2,7 +2,7 @@
 'use strict';
 
 const CFG = window.FAB_CONFIG || {};
-const BUILD = '2026-11-16-1';
+const BUILD = '2026-11-17-1';
 const LS_KEY = 'fabtracker.v1';
 const MAX_UPLOAD = 25 * 1024 * 1024;
 const SYNC_MS = 30000;
@@ -285,9 +285,9 @@ async function openVideo(name, source){
 }
 
 /* ---------- fab term highlighting and recipe rendering ---------- */
-const HL_UNITS = 'seconds?|minutes?|hours?|sccm|slm|mTorr|Torr|mbar|kPa|Pa|kW|mW\\/cm²|mW|W|kV|mV|V|mA|µA|uA|nA|pA|A|kHz|MHz|GHz|Hz|krpm|rpm|sec|ms|min|hrs?|h|s|°C|°|K|nm|µm|um|mm|cm|Å|%|mL|ml|µL|µl|uL|L|mg|µg|ug|g|keV|eV|µC\\/cm²|uC\\/cm²|µC\\/cm2|uC\\/cm2|mJ\\/cm²|J\\/cm²';
+const HL_UNITS = 'seconds?|minutes?|hours?|sccm|slm|mTorr|Torr|mbar|kPa|Pa|kW|mW\\/cm²|mW|W|kV|mV|V|mA|µA|uA|nA|pA|A|kHz|MHz|GHz|Hz|krpm|rpm|sec|ms|µs|us|ns|ps|min|hrs?|h|s|°C|°|K|nm|µm|um|mm|cm|Å|%|mL|ml|µL|µl|uL|L|mg|µg|ug|g|keV|eV|µC\\/cm²|uC\\/cm²|µC\\/cm2|uC\\/cm2|mJ\\/cm²|J\\/cm²';
 const HL_CHEM = 'SF6|CF4|CHF3|C4F8|C2F6|NF3|N2O|N2|O2|Ar|He|H2|Cl2|BCl3|HBr|NH3|SiH4|TEOS|TMA|BOE|HF|HCl|H2SO4|H2O2|HNO3|KOH|TMAH|IPA|MIBK|NMP|PMMA|HSQ|ZEP\\d*|SU-?8|S18\\d\\d|AZ\\s?\\d+\\w*|ma-?N\\s?\\d+|PMGI|LOR\\w*|MF-?\\d+|CD-?\\d+|DI\\s?water|acetone|isopropanol|methanol|ethanol|toluene|photoresist|resist|developer|SiO2|SiO|Si3N4|SiN|ITO|Al2O3|HfO2|TiN|Si|Ti|Au|Pt|Al|Cu|Cr|Ni|Ag|Pd';
-const HL_PROC = 'spin(?:ning)?|spin-?coat\\w*|coat(?:ing)?|bake|expos\\w+|develop\\w*|etch\\w*|ICP|RIE|DRIE|PECVD|LPCVD|CVD|ALD|sputter\\w*|evaporat\\w+|e-?beam|EBL|lift-?off|strip\\w*|ash(?:ing)?|descum|clean\\w*|rinse|dicing|dice|polish\\w*|anneal\\w*|oxide|nitride|metal\\w*|deposit\\w+|overlay|alignment|align|mask|litho\\w*|RTA|RTP|plasma|vacuum|dry|wet';
+const HL_PROC = 'beam\\s+step\\s+size|beam\\s+current|beam\\s+size|beam\\s+spot|spot\\s+size|step\\s+size|dwell\\s+time|dwell|write\\s+field|field\\s+size|aperture|acceleration\\s+voltage|accelerating\\s+voltage|acc\\.?\\s+voltage|base\\s+dose|dose\\s+factor|area\\s+dose|dose|proximity|PEC|fractur\\w+|stitch\\w*|stigmation|astigmatism|working\\s+distance|focus|pitch|beam|spin(?:ning)?|spin-?coat\\w*|coat(?:ing)?|bake|expos\\w+|develop\\w*|etch\\w*|ICP|RIE|DRIE|PECVD|LPCVD|CVD|ALD|sputter\\w*|evaporat\\w+|e-?beam|EBL|lift-?off|strip\\w*|ash(?:ing)?|descum|clean\\w*|rinse|dicing|dice|polish\\w*|anneal\\w*|oxide|nitride|metal\\w*|deposit\\w+|overlay|alignment|align|mask|litho\\w*|RTA|RTP|plasma|vacuum|dry|wet';
 const HL_WARN = 'WARNING|CAUTION|DANGER|IMPORTANT|NOTE|DO NOT|DON(?:\'|&#39;)T|NEVER|HAZARD\\w*|TOXIC|CORROSIVE';
 const FAB_RE = new RegExp(
   '(?<warn>(?<![\\w])(?:' + HL_WARN + ')(?![\\w]))' +
@@ -343,7 +343,7 @@ function recipeHtml(text){
 }
 const FAB_SNIPPETS = [['Heading','# ',0],['Gas','- Gas: ',0],['Flow','- Flow:  sccm',5],['Power','- Power:  W',2],['Pressure','- Pressure:  mTorr',6],
   ['Temperature','- Temperature:  °C',3],['Time','- Time:  s',2],['Spin','- Spin: 4000 rpm, 60 s',0],['Bake','- Bake: 115 °C, 60 s',0],
-  ['Dose','- Dose:  µC/cm²',7],['Thickness','- Thickness:  nm',3],['Developer','- Developer: ',0],['Note','- NOTE: ',0]];
+  ['Dose','- Dose:  µC/cm²',7],['Beam current','- Beam current:  nA',3],['Beam size','- Beam size:  nm',3],['Step size','- Step size:  nm',3],['Dwell time','- Dwell time:  µs',3],['Write field','- Write field:  µm',3],['Aperture','- Aperture:  µm',3],['Acc. voltage','- Acceleration voltage:  kV',3],['Thickness','- Thickness:  nm',3],['Developer','- Developer: ',0],['Note','- NOTE: ',0]];
 const HL_LEGEND = '<div class="hl-legend"><span class="hl-num">values and units</span><span class="hl-chem">gases and materials</span><span class="hl-proc">process terms</span><span class="hl-warn">warnings</span></div>';
 function hlEditorBlock(id, value, toolbar){
   return `<div class="hl-editor">${toolbar ? `<div class="hl-tools" role="toolbar" aria-label="Insert a parameter line">${FAB_SNIPPETS.map(([l], i) => `<button type="button" class="chip-btn" data-act="rins" data-i="${i}">+ ${l}</button>`).join('')}</div>` : ''}
