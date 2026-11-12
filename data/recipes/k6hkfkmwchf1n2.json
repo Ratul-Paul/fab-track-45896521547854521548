@@ -1,6 +1,6 @@
 {
  "id": "k6hkfkmwchf1n2",
- "name": "ZEP 520A Spin Coating 600nm",
+ "name": "ZEP 520A Spin Coating (600nm)",
  "process": "Spin coating",
  "version": "1",
  "status": "active",
@@ -28,10 +28,15 @@
    "by": "Ratul-Paul",
    "at": 1794484705172,
    "note": "Edited name"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794484738757,
+   "note": "Edited name"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794423494414,
- "updatedAt": 1794484705172,
+ "updatedAt": 1794484738757,
  "comments": []
 }
