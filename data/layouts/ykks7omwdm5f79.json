@@ -12,7 +12,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794491909685,
- "updatedAt": 1794492127929,
+ "updatedAt": 1794492144838,
  "steps": [
   {
    "id": "njnphwmwdm78i5",
@@ -106,6 +106,17 @@
    "size": 4870398,
    "by": "Ratul-Paul",
    "at": 1794492127929
+  },
+  {
+   "id": "pk7zi0mwdmae76",
+   "type": "image",
+   "title": "",
+   "caption": "",
+   "name": "hsq_4000rpm_3600uc_1min_az400k_2.jpg",
+   "path": "data/files/ykks7omwdm5f79/results/pk7zi0mwdmae76-hsq_4000rpm_3600uc_1min_az400k_2.jpg",
+   "size": 4903071,
+   "by": "Ratul-Paul",
+   "at": 1794492144838
   }
  ],
  "dates": {
