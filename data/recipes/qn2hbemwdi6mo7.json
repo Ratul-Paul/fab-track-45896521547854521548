@@ -2,7 +2,7 @@
  "id": "qn2hbemwdi6mo7",
  "name": "EBL Patterning HSQ",
  "process": "EBL patterning",
- "version": "",
+ "version": "1",
  "status": "draft",
  "tools": "Elionix ELS-S50EX",
  "body": "Dose: 300 µC/cm² (cold development 0 °C)\nBeam current: 1 nA\nBeam step size: 2 nm\nField size: 500um to 1000um\nField overlap: Depends on the component, usually 10-50um\nField needs to be controlled for following line. \n\n",
@@ -18,10 +18,15 @@
    "by": "Ratul-Paul",
    "at": 1794485258891,
    "note": "Edited name"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794485265945,
+   "note": "Edited version"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794485247559,
- "updatedAt": 1794485258891,
+ "updatedAt": 1794485265945,
  "comments": []
 }
