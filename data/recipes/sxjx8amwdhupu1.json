@@ -1,6 +1,6 @@
 {
  "id": "sxjx8amwdhupu1",
- "name": "ZEP 520A Spin Coating (copy)",
+ "name": "ZEP 520A Spin Coating 400 nm",
  "process": "Spin coating",
  "version": "",
  "status": "draft",
@@ -13,9 +13,15 @@
    "by": "Ratul-Paul",
    "at": 1794484691785,
    "note": "Duplicated from ZEP 520A Spin Coating v1"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794484712087,
+   "note": "Edited name"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794484691785,
- "updatedAt": 1794484691785
+ "updatedAt": 1794484712087,
+ "comments": []
 }
