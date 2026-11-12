@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794492258142,
- "updatedAt": 1794492281592,
+ "updatedAt": 1794492282064,
  "dates": {},
  "steps": [
   {
@@ -40,16 +40,23 @@
   {
    "id": "bpzilhmwdmcw2m",
    "name": "EBL patterning",
-   "state": "pending",
+   "state": "pass",
    "note": "",
    "recipe": "EBL Patterning HSQ v1",
    "recipeId": "qn2hbemwdi6mo7",
    "days": "",
    "started": "",
    "issues": [],
-   "by": null,
-   "at": null,
-   "log": []
+   "by": "Ratul-Paul",
+   "at": 1794492282064,
+   "log": [
+    {
+     "by": "Ratul-Paul",
+     "at": 1794492282064,
+     "state": "pass",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "2j90sxmwdmcw2m",
