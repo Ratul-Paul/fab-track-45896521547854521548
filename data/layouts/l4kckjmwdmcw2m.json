@@ -1,0 +1,64 @@
+{
+ "id": "l4kckjmwdmcw2m",
+ "name": "Copy of Bragg Grating Test With SiN DLC",
+ "type": "passive",
+ "status": "planned",
+ "purpose": "",
+ "tags": [
+  "Bragg Grating",
+  "Cleaved"
+ ],
+ "workers": [
+  "Ratul-Paul"
+ ],
+ "createdBy": "Ratul-Paul",
+ "createdAt": 1794492258142,
+ "updatedAt": 1794492258142,
+ "dates": {},
+ "steps": [
+  {
+   "id": "8ww2gimwdmcw2m",
+   "name": "Spin coating",
+   "state": "pending",
+   "note": "",
+   "recipe": "HSQ 16% Spin Coating (400 nm) v1",
+   "recipeId": "g79qrimwcp3zux",
+   "days": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "bpzilhmwdmcw2m",
+   "name": "EBL patterning",
+   "state": "pending",
+   "note": "",
+   "recipe": "EBL Patterning HSQ v1",
+   "recipeId": "qn2hbemwdi6mo7",
+   "days": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "2j90sxmwdmcw2m",
+   "name": "Etching",
+   "state": "pending",
+   "note": "",
+   "recipe": "Silicon Nitride Etch v1",
+   "recipeId": "clsmzymwdjhmw3",
+   "days": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  }
+ ],
+ "files": [],
+ "results": []
+}
