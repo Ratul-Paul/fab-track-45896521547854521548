@@ -12,7 +12,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794491909685,
- "updatedAt": 1794492196876,
+ "updatedAt": 1794492207336,
  "steps": [
   {
    "id": "njnphwmwdm78i5",
@@ -79,6 +79,20 @@
      "note": "Recipe: EBL Patterning HSQ v1"
     }
    ]
+  },
+  {
+   "id": "al3i36mwdmbsvc",
+   "name": "Etching",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "recipeId": "",
+   "days": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
   }
  ],
  "files": [
