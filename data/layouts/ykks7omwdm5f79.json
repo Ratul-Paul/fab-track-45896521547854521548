@@ -12,7 +12,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794491909685,
- "updatedAt": 1794491979804,
+ "updatedAt": 1794491986287,
  "steps": [],
  "files": [
   {
@@ -33,6 +33,10 @@
   "design": {
    "start": "2026-10-12",
    "end": "2026-10-14"
+  },
+  "fab": {
+   "start": "2026-10-14",
+   "end": ""
   }
  },
  "comments": []
