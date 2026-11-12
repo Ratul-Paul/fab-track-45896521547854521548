@@ -12,7 +12,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794491909685,
- "updatedAt": 1794492022885,
+ "updatedAt": 1794492030331,
  "steps": [
   {
    "id": "njnphwmwdm78i5",
@@ -46,13 +46,13 @@
    "name": "EBL patterning",
    "state": "pass",
    "note": "",
-   "recipe": "HSQ 16% Spin Coating (400 nm) v1",
-   "recipeId": "g79qrimwcp3zux",
+   "recipe": "EBL Patterning HSQ v1",
+   "recipeId": "qn2hbemwdi6mo7",
    "days": "",
    "started": "",
    "issues": [],
    "by": "Ratul-Paul",
-   "at": 1794492009807,
+   "at": 1794492030331,
    "log": [
     {
      "by": "Ratul-Paul",
@@ -71,6 +71,12 @@
      "at": 1794492009807,
      "state": "pass",
      "note": "Recipe: HSQ 16% Spin Coating (400 nm) v1"
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794492030331,
+     "state": "pass",
+     "note": "Recipe: EBL Patterning HSQ v1"
     }
    ]
   }
