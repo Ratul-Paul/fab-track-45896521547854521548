@@ -12,7 +12,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794491909685,
- "updatedAt": 1794492213295,
+ "updatedAt": 1794492214886,
  "steps": [
   {
    "id": "njnphwmwdm78i5",
@@ -83,7 +83,7 @@
   {
    "id": "al3i36mwdmbsvc",
    "name": "Etching",
-   "state": "pending",
+   "state": "pass",
    "note": "",
    "recipe": "Silicon Nitride Etch v1",
    "recipeId": "clsmzymwdjhmw3",
@@ -91,13 +91,19 @@
    "started": "",
    "issues": [],
    "by": "Ratul-Paul",
-   "at": 1794492213295,
+   "at": 1794492214886,
    "log": [
     {
      "by": "Ratul-Paul",
      "at": 1794492213295,
      "state": "pending",
      "note": "Recipe: Silicon Nitride Etch v1"
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794492214886,
+     "state": "pass",
+     "note": ""
     }
    ]
   }
