@@ -2,7 +2,7 @@
 'use strict';
 
 const CFG = window.FAB_CONFIG || {};
-const BUILD = '2026-11-17-1';
+const BUILD = '2026-11-18-1';
 const LS_KEY = 'fabtracker.v1';
 const MAX_UPLOAD = 25 * 1024 * 1024;
 const SYNC_MS = 30000;
@@ -38,7 +38,7 @@ const S = {
   cfg:null, me:null, canWrite:true, mode:'boot', err:'', setupErr:'',
   srv:{}, pend:{}, queue:{}, busy:{}, L:[], byId:{},
   presets:[], presetsSha:null, loaded:false, syncing:false, lastSync:0,
-  q:'', type:'all', R:[], RBy:{}, recipeCustom:[], rq:'', rproc:'all', rstatus:'all', editRBody:false, tagFilter:[], sortKey:'updated', sortDir:'desc', group:'status', editBlock:null, selMode:false, sel:[], kindFilter:'all', tab:'fab', open:{}, fileStep:'', armed:null,
+  q:'', type:'all', R:[], RBy:{}, recipeCustom:[], replyTo:'', replyPrefill:'', editComment:'', rq:'', rproc:'all', rstatus:'all', editRBody:false, tagFilter:[], sortKey:'updated', sortDir:'desc', group:'status', editBlock:null, selMode:false, sel:[], kindFilter:'all', tab:'fab', open:{}, fileStep:'', armed:null,
   down:false, dirty:false, blobs:{}
 };
 const $ = s => document.querySelector(s);
@@ -98,9 +98,9 @@ function rebuild(){
     let d = S.srv[id].data;
     const p = S.pend[id];
     if (p && p.length){ d = clone(d); p.forEach(x => x.fn(d)); }
-    if (id.startsWith('r~')){ d.id = id.slice(2); d.issues = d.issues || []; d.files = d.files || []; d.history = d.history || []; S.R.push(d); continue; }
+    if (id.startsWith('r~')){ d.id = id.slice(2); d.comments = d.comments || []; d.issues = d.issues || []; d.files = d.files || []; d.history = d.history || []; S.R.push(d); continue; }
     d.id = id; d.steps = d.steps || []; d.files = d.files || []; d.workers = d.workers || [];
-    d.tags = d.tags || []; d.results = d.results || []; d.dates = d.dates || {};
+    d.tags = d.tags || []; d.results = d.results || []; d.dates = d.dates || {}; d.comments = d.comments || [];
     d.steps.forEach(s => { s.issues = s.issues || []; });
     S.L.push(d);
   }
@@ -344,11 +344,9 @@ function recipeHtml(text){
 const FAB_SNIPPETS = [['Heading','# ',0],['Gas','- Gas: ',0],['Flow','- Flow:  sccm',5],['Power','- Power:  W',2],['Pressure','- Pressure:  mTorr',6],
   ['Temperature','- Temperature:  °C',3],['Time','- Time:  s',2],['Spin','- Spin: 4000 rpm, 60 s',0],['Bake','- Bake: 115 °C, 60 s',0],
   ['Dose','- Dose:  µC/cm²',7],['Beam current','- Beam current:  nA',3],['Beam size','- Beam size:  nm',3],['Step size','- Step size:  nm',3],['Dwell time','- Dwell time:  µs',3],['Write field','- Write field:  µm',3],['Aperture','- Aperture:  µm',3],['Acc. voltage','- Acceleration voltage:  kV',3],['Thickness','- Thickness:  nm',3],['Developer','- Developer: ',0],['Note','- NOTE: ',0]];
-const HL_LEGEND = '<div class="hl-legend"><span class="hl-num">values and units</span><span class="hl-chem">gases and materials</span><span class="hl-proc">process terms</span><span class="hl-warn">warnings</span></div>';
 function hlEditorBlock(id, value, toolbar){
   return `<div class="hl-editor">${toolbar ? `<div class="hl-tools" role="toolbar" aria-label="Insert a parameter line">${FAB_SNIPPETS.map(([l], i) => `<button type="button" class="chip-btn" data-act="rins" data-i="${i}">+ ${l}</button>`).join('')}</div>` : ''}
-    <div class="hl-wrap"><pre class="hl-back" aria-hidden="true"></pre><textarea class="hl-front" ${id ? `id="${id}"` : ''} data-rbody spellcheck="false" wrap="off" placeholder="# Etch&#10;- Gas: SF6 / O2, 40 / 5 sccm&#10;- Power: 100 W&#10;- Pressure: 30 mTorr&#10;- Time: 60 s&#10;- NOTE: chamber clean first">${esc(value)}</textarea></div>
-    ${HL_LEGEND}</div>`;
+    <div class="hl-wrap"><pre class="hl-back" aria-hidden="true"></pre><textarea class="hl-front" ${id ? `id="${id}"` : ''} data-rbody spellcheck="false" wrap="off" placeholder="# Etch&#10;- Gas: SF6 / O2, 40 / 5 sccm&#10;- Power: 100 W&#10;- Pressure: 30 mTorr&#10;- Time: 60 s&#10;- NOTE: chamber clean first">${esc(value)}</textarea></div></div>`;
 }
 function syncEditor(ta){
   const pre = ta.parentElement && ta.parentElement.querySelector('.hl-back'); if (!pre) return;
@@ -432,6 +430,37 @@ function selectRecipe(lid, sid, val){
   const r = S.RBy[val]; if (!r) return;
   setStepFields(lid, sid, {recipeId:r.id, recipe:recipeName(r)}, 'Recipe: ' + recipeName(r));
 }
+
+/* ---------- comments and replies (layouts and recipes) ---------- */
+const cmTarget = () => routeR() ? {kind:'recipe', id:routeR()} : {kind:'layout', id:route()};
+const cmKey = t => t.kind === 'recipe' ? rKey(t.id) : t.id;
+const cmOwner = t => t.kind === 'recipe' ? S.RBy[t.id] : S.byId[t.id];
+const cmLabel = (t, d) => (t.kind === 'recipe' ? 'recipe ' : '') + d.name;
+function addComment(t, text, parentId){
+  text = (text || '').trim(); const d = cmOwner(t); if (!text || !d) return;
+  const c = {id:rid(), text:text.slice(0, 4000), by:me(), at:Date.now(), parentId:parentId || ''};
+  mutate(cmKey(t), dd => {
+    dd.comments = dd.comments || [];
+    if (c.parentId && !dd.comments.some(x => x.id === c.parentId)) return;
+    if (!dd.comments.some(x => x.id === c.id)) dd.comments.push(c);
+  }, `${c.parentId ? 'Reply' : 'Comment'} on ${cmLabel(t, d)}`);
+}
+function editComment(t, cid, text){
+  text = (text || '').trim(); const d = cmOwner(t); if (!text || !d) return;
+  const by = me(), at = Date.now();
+  mutate(cmKey(t), dd => { const c = (dd.comments || []).find(x => x.id === cid); if (c && c.by === by){ c.text = text.slice(0, 4000); c.edited = at; } }, `Edit comment on ${cmLabel(t, d)}`);
+}
+function delComment(t, cid){
+  const d = cmOwner(t); if (!d) return;
+  const by = me();
+  mutate(cmKey(t), dd => {
+    const c = (dd.comments || []).find(x => x.id === cid);
+    if (c && c.by === by) dd.comments = dd.comments.filter(x => x.id !== cid && x.parentId !== cid);
+  }, `Delete comment on ${cmLabel(t, d)}`);
+}
+function sendNewComment(){ const ta = $app.querySelector('[data-cmnew]'); if (!ta) return; const v = ta.value; ta.value = ''; addComment(cmTarget(), v); }
+function sendReply(parent){ const ta = $app.querySelector(`[data-cmreply="${parent}"]`); if (!ta) return; const v = ta.value; ta.value = ''; S.replyTo = ''; S.replyPrefill = ''; addComment(cmTarget(), v, parent); sched(); }
+function saveCommentEdit(cid){ const ta = $app.querySelector(`[data-cmedit="${cid}"]`); if (!ta) return; editComment(cmTarget(), cid, ta.value); S.editComment = ''; sched(); }
 
 /* ---------- section dates, duplicate layout, copy and paste steps ---------- */
 const SECTIONS = [['design','Design'],['fab','Fab'],['results','Measurement']];
@@ -659,7 +688,7 @@ function ovRow(l){
   return `<div class="row ${tint}" role="link" tabindex="0" data-act="open" data-id="${l.id}">
         <div><div class="nm">${esc(l.name)}</div><div class="tagrow">${l.type ? `<span class="tag ${l.type}">${l.type === 'active' ? 'Active' : 'Passive'}</span>` : ''}${S.group === 'none' ? `<span class="tagc">${esc(stLabel)}</span>` : ''}${tagChips(l)}</div></div>
         <div class="c-who">${l.workers.length ? l.workers.map(w => who(w)).join('') : '<span class="who">Unassigned</span>'}</div>
-        <div class="c-prog">${strip(l)}${tlShort(l)}<small>${st.total ? `${st.pass} of ${st.total} done${st.fail ? ` · ${st.fail} failed` : ''}` : 'No steps yet'}${oi ? ` · <span class="iss">${oi} open issue${oi > 1 ? 's' : ''}</span>` : ''}${overdueSteps(l) ? ` · <span class="iss">${overdueSteps(l)} overdue</span>` : ''}</small></div>
+        <div class="c-prog">${strip(l)}${tlShort(l)}<small>${st.total ? `${st.pass} of ${st.total} done${st.fail ? ` · ${st.fail} failed` : ''}` : 'No steps yet'}${oi ? ` · <span class="iss">${oi} open issue${oi > 1 ? 's' : ''}</span>` : ''}${overdueSteps(l) ? ` · <span class="iss">${overdueSteps(l)} overdue</span>` : ''}${l.comments.length ? ` · ${plural(l.comments.length, 'comment')}` : ''}</small></div>
       </div>`;
 }
 function ovList(){
@@ -676,16 +705,20 @@ function ovList(){
 }
 function activity(){
   const items = [];
-  S.L.forEach(l => l.steps.forEach(s => { if (s.at) items.push({l, s}); }));
-  items.sort((a, b) => b.s.at - a.s.at);
-  if (!items.length) return '<p class="hint">Updates to steps will show up here, with who made them.</p>';
-  return `<ul class="act">${items.slice(0, 8).map(({l, s}) => {
-    const ln = (s.log || []).slice(-1)[0], note = (ln && ln.note) || '';
-    const verb = note.startsWith('Issue resolved') ? `resolved an issue on <b>${esc(s.name)}</b>` :
-      note.startsWith('Issue:') ? `reported an issue on <b>${esc(s.name)}</b>` :
-      s.state === 'pass' ? `marked <b>${esc(s.name)}</b> done` : s.state === 'fail' ? `marked <b>${esc(s.name)}</b> failed` : `updated <b>${esc(s.name)}</b>`;
-    return `<li>${who(s.by)} ${verb} on <a data-act="open" data-id="${l.id}">${esc(l.name)}</a><time>${fmt(s.at)}</time></li>`;
-  }).join('')}</ul>`;
+  S.L.forEach(l => {
+    l.steps.forEach(st => { if (st.at){
+      const ln = (st.log || []).slice(-1)[0], note = (ln && ln.note) || '';
+      const verb = note.startsWith('Issue resolved') ? `resolved an issue on <b>${esc(st.name)}</b>` :
+        note.startsWith('Issue:') ? `reported an issue on <b>${esc(st.name)}</b>` :
+        st.state === 'pass' ? `marked <b>${esc(st.name)}</b> done` : st.state === 'fail' ? `marked <b>${esc(st.name)}</b> failed` : `updated <b>${esc(st.name)}</b>`;
+      items.push({at:st.at, html:`${who(st.by)} ${verb} on <a data-act="open" data-id="${l.id}">${esc(l.name)}</a>`});
+    } });
+    l.comments.forEach(c => items.push({at:c.at, html:`${who(c.by)} ${c.parentId ? 'replied' : 'commented'} on <a data-act="open" data-id="${l.id}">${esc(l.name)}</a>`}));
+  });
+  S.R.forEach(r => r.comments.forEach(c => items.push({at:c.at, html:`${who(c.by)} ${c.parentId ? 'replied' : 'commented'} on recipe <a data-act="openrecipe" data-id="${r.id}">${esc(recipeName(r))}</a>`})));
+  items.sort((a, b) => b.at - a.at);
+  if (!items.length) return '<p class="hint">Updates, comments and replies will show up here, with who made them.</p>';
+  return `<ul class="act">${items.slice(0, 8).map(it => `<li>${it.html}<time>${fmt(it.at)}</time></li>`).join('')}</ul>`;
 }
 function tagBar(){
   const used = allTags().filter(t => t.count > 0).sort((a, b) => a.name.localeCompare(b.name));
@@ -786,6 +819,30 @@ function recipePicker(s, ro){
     : `<span class="hint" style="margin:0">No saved recipes yet. <a href="#recipes">Add one on the Recipes page</a>, or</span> <select data-recipesel="${s.id}" ${ro}><option value="">None</option><option value="__custom">Type a custom recipe</option></select>`;
   return `<label>Recipe used${sel}${mode === '__custom' ? `<input class="txt" data-recipe="${s.id}" value="${esc(s.recipe || '')}" placeholder="e.g. Si etch v3, 60 s" ${ro}>` : ''}</label>`;
 }
+function cmText(t){
+  return esc(t)
+    .replace(/(https?:\/\/[^\s<]+)/g, u => `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`)
+    .replace(/(^|[\s(])@([A-Za-z0-9-]{1,39})\b/g, '$1<span class="mention">@$2</span>')
+    .replace(/\n/g, '<br>');
+}
+function commentsHtml(kind, d){
+  const rw = S.canWrite;
+  const top = d.comments.filter(c => !c.parentId).sort((a, b) => b.at - a.at);
+  const reps = pid => d.comments.filter(c => c.parentId === pid).sort((a, b) => a.at - b.at);
+  const item = (c, topId) => {
+    const mine = S.me && c.by === S.me.login, editing = S.editComment === c.id, isReply = !!c.parentId, nrep = isReply ? 0 : reps(c.id).length;
+    const armed = S.armed === 'cm' + c.id;
+    return `<div class="cm ${isReply ? 'reply' : ''}">
+      <div class="cmh">${who(c.by)}<span>${fmt(c.at)}${c.edited ? ' · edited' : ''}</span></div>
+      ${editing
+        ? `<textarea class="txt" rows="3" data-cmedit="${c.id}">${esc(c.text)}</textarea><div class="tools"><button class="btn primary sm" data-act="cmsave" data-cid="${c.id}">Save</button><button class="btn sm" data-act="cmcancel">Cancel</button></div>`
+        : `<div class="cmt">${cmText(c.text)}</div><div class="cma">${rw ? `<button class="btn ghost sm" data-act="cmreply" data-cid="${topId}" data-by="${esc(c.by)}" data-isreply="${isReply ? 1 : ''}">Reply</button>` : ''}${rw && mine ? `<button class="btn ghost sm" data-act="cmedit" data-cid="${c.id}">Edit</button><button class="btn ghost sm danger ${armed ? 'armed' : ''}" data-act="cmdel" data-cid="${c.id}">${armed ? (nrep ? `Click again to delete with ${nrep} repl${nrep === 1 ? 'y' : 'ies'}` : 'Click again to delete') : 'Delete'}</button>` : ''}</div>`}
+    </div>`;
+  };
+  const thread = c => `<div class="thread">${item(c, c.id)}${reps(c.id).map(r => item(r, c.id)).join('')}${S.replyTo === c.id ? `<div class="cmreply"><textarea class="txt" rows="2" data-cmreply="${c.id}" placeholder="Write a reply (Ctrl+Enter to send)">${esc(S.replyPrefill)}</textarea><div class="tools"><button class="btn primary sm" data-act="cmsendreply" data-cid="${c.id}">Reply</button><button class="btn sm" data-act="cmreplycancel">Cancel</button></div></div>` : ''}</div>`;
+  const composer = rw ? `<div class="cmnew"><textarea class="txt" rows="3" data-cmnew placeholder="Add a comment. Use @name to mention someone (Ctrl+Enter to send)" aria-label="New comment"></textarea><div class="tools"><button class="btn primary" data-act="cmsend">Comment</button></div></div>` : '';
+  return `<div class="comments">${composer}${top.length ? top.map(thread).join('') : `<div class="empty"><strong>No comments yet</strong>Start a discussion about this ${kind}. Teammates see it when they open the page, or within 30 seconds if it is already open.</div>`}</div>`;
+}
 function recipeFileCard(r, f){
   const isImg = f.source === 'repo' && /\.(png|jpe?g|gif|webp|svg|bmp)$/i.test(f.name);
   const ext = (f.name.split('.').pop() || 'file').toUpperCase().slice(0, 4);
@@ -804,7 +861,7 @@ function rRow(r){
   return `<div class="row rrow" role="link" tabindex="0" data-act="openrecipe" data-id="${r.id}">
     <div><div class="nm">${esc(r.name)} ${recipeVer(r) ? `<span class="ver-tag">${esc(recipeVer(r))}</span>` : ''}</div><div class="tagrow">${r.status !== 'active' ? `<span class="tagc">${r.status === 'draft' ? 'Draft' : 'Retired'}</span>` : ''}${r.tools ? `<span class="hint" style="margin:0">${esc(r.tools)}</span>` : ''}</div></div>
     <div class="purpose">${esc((r.body || '').replace(/[#*`\-]/g, '').slice(0, 140) || 'No parameters written yet')}</div>
-    <div class="c-prog"><small>${n ? `Used in ${n} step${n > 1 ? 's' : ''}` : 'Not used yet'}</small></div>
+    <div class="c-prog"><small>${n ? `Used in ${n} step${n > 1 ? 's' : ''}` : 'Not used yet'}${r.comments.length ? ` · ${plural(r.comments.length, 'comment')}` : ''}</small></div>
     <div class="c-prog">${oi ? `<span class="issue-badge">${ico('alert')} ${oi} open issue${oi > 1 ? 's' : ''}</span>` : `<small>${r.issues.length ? 'All issues resolved' : 'No issues'}</small>`}</div>
   </div>`;
 }
@@ -849,7 +906,7 @@ function viewRecipe(id){
   <h3 class="sec">Parameters and procedure</h3>
   ${S.editRBody
     ? `${hlEditorBlock('', r.body || '', true)}<div class="tools" style="margin-top:8px"><button class="btn primary" data-act="rbodysave">Save</button><button class="btn" data-act="rbodycancel">Cancel</button></div>`
-    : `<div class="rblock"><div class="rbody"><div class="prose recipe">${recipeHtml(r.body || '') || '<p class="hint">Nothing written yet.</p>'}</div>${r.body ? HL_LEGEND : ''}${S.canWrite ? '<div class="tools"><button class="btn" data-act="rbodyedit">Edit parameters</button></div>' : ''}</div></div>`}
+    : `<div class="rblock"><div class="rbody"><div class="prose recipe">${recipeHtml(r.body || '') || '<p class="hint">Nothing written yet.</p>'}</div>${S.canWrite ? '<div class="tools"><button class="btn" data-act="rbodyedit">Edit parameters</button></div>' : ''}</div></div>`}
 
   <h3 class="sec">Files</h3>
   ${S.canWrite ? `<div class="rbar"><button class="btn" data-act="rattach">${ico('clip')} Add a file or link</button></div>` : ''}
@@ -862,6 +919,9 @@ function viewRecipe(id){
       ${S.canWrite ? `<div class="ia"><button class="btn sm" data-act="rresolve" data-iid="${x.id}">${x.resolved ? 'Reopen' : 'Mark resolved'}</button><button class="btn ghost sm danger ${S.armed === 'ri' + x.id ? 'armed' : ''}" data-act="rdelissue" data-iid="${x.id}">${S.armed === 'ri' + x.id ? 'Click again to delete' : 'Delete'}</button></div>` : ''}</li>`).join('')}</ul>` : '<p class="hint" style="margin:0">No issues reported on this recipe.</p>'}
     ${S.canWrite ? `<div class="tools"><input class="txt" data-rissue placeholder="Describe the problem, e.g. etch rate drifts after 20 wafers" aria-label="Describe an issue"><button class="btn" data-act="raddissue">${ico('alert')} Report issue</button></div>` : ''}
   </div>
+
+  <h3 class="sec">Comments${r.comments.length ? ` (${r.comments.length})` : ''}</h3>
+  ${commentsHtml('recipe', r)}
 
   <h3 class="sec">Used in</h3>
   ${uses.length ? `<div class="tbl"><table><thead><tr><th>Layout</th><th>Step</th><th>Result</th><th>Started</th></tr></thead><tbody>${uses.map(({l, s: st}) => `<tr><td><a class="lnk" data-act="open" data-id="${l.id}">${esc(l.name)}</a></td><td>${esc(st.name)}</td><td>${stateWord(st.state)}</td><td>${st.started ? esc(fmtDate(st.started)) : ''}</td></tr>`).join('')}</tbody></table></div>` : '<p class="hint" style="margin:0">Not used in any step yet. Pick it from the Recipe used dropdown on a step.</p>'}
@@ -995,8 +1055,9 @@ function viewDetail(id){
   if (!l) return topbar() + '<div class="empty"><strong>Layout not found</strong>It may have been deleted.<br><a class="btn" href="#overview">Back to all layouts</a></div>';
   const ro = !S.canWrite, dis = ro ? 'disabled' : '', st = stats(l), oi = openIssues(l);
   const nDesign = l.files.filter(f => DESIGN_KINDS.includes(f.kind || 'other')).length;
-  const tab = ['design', 'fab', 'results'].includes(S.tab) ? S.tab : 'fab';
+  const tab = ['design', 'fab', 'results', 'comments'].includes(S.tab) ? S.tab : 'fab';
   const body = tab === 'design' ? secDates(l, 'design') + tabFiles(l, 'design') :
+    tab === 'comments' ? commentsHtml('layout', l) :
     tab === 'results' ? secDates(l, 'results') + tabResults(l) :
     secDates(l, 'fab') + tabProcess(l) + `<section id="fab-files" class="fabfiles"><h3 class="sec">Process images and files</h3>${tabFiles(l, 'fab')}</section>`;
   return topbar() + `
@@ -1020,6 +1081,7 @@ function viewDetail(id){
     <button role="tab" data-act="tab" data-v="design" aria-selected="${tab === 'design'}">Design${nDesign ? ` (${nDesign})` : ''}</button>
     <button role="tab" data-act="tab" data-v="fab" aria-selected="${tab === 'fab'}">Fab${st.total ? ` (${st.pass}/${st.total})` : ''}</button>
     <button role="tab" data-act="tab" data-v="results" aria-selected="${tab === 'results'}">Results${l.results.length ? ` (${l.results.length})` : ''}</button>
+    <button role="tab" data-act="tab" data-v="comments" aria-selected="${tab === 'comments'}">Comments${l.comments.length ? ` (${l.comments.length})` : ''}</button>
   </div>
   ${body}
   ${S.canWrite ? `<p style="margin-top:36px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-act="dupe" data-id="${id}">Duplicate layout</button><button class="btn danger ${S.armed === 'l' + id ? 'armed' : ''}" data-act="dellayout" data-id="${id}">${S.armed === 'l' + id ? 'Click again to delete this layout and its files' : 'Delete layout'}</button></p>` : ''}`;
@@ -1582,7 +1644,7 @@ const up = () => { if (S.down){ S.down = false; setTimeout(flush, 60); } };
 document.addEventListener('pointerup', up, true);
 document.addEventListener('pointercancel', up, true);
 document.addEventListener('focusout', () => setTimeout(flush, 80));
-window.addEventListener('hashchange', () => { S.selMode = false; S.sel = []; S.editRBody = false; S.fileStep = ''; S.kindFilter = 'all'; S.tab = 'fab'; S.open = {}; S.editBlock = null; sched(); window.scrollTo(0, 0); });
+window.addEventListener('hashchange', () => { S.selMode = false; S.sel = []; S.editRBody = false; S.replyTo = ''; S.editComment = ''; S.fileStep = ''; S.kindFilter = 'all'; S.tab = 'fab'; S.open = {}; S.editBlock = null; sched(); window.scrollTo(0, 0); });
 document.addEventListener('scroll', e => { const t = e.target; if (t && t.classList && t.classList.contains('hl-front')) syncEditor(t); }, true);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
 setInterval(() => { if (!document.hidden) sync(); }, SYNC_MS);
@@ -1611,6 +1673,11 @@ function addWorker(lid, name){
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && modal.innerHTML){ closeModal(); return; }
   const t = e.target, lid = route();
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && t.dataset){
+    if (t.dataset.cmnew !== undefined){ if (e.preventDefault) e.preventDefault(); sendNewComment(); return; }
+    if (t.dataset.cmreply !== undefined){ if (e.preventDefault) e.preventDefault(); sendReply(t.dataset.cmreply); return; }
+    if (t.dataset.cmedit !== undefined){ if (e.preventDefault) e.preventDefault(); saveCommentEdit(t.dataset.cmedit); return; }
+  }
   if (e.key !== 'Enter' || t.tagName === 'TEXTAREA') return;
   if (t.dataset.addstep){ const v = t.value; t.value = ''; addStep(t.dataset.addstep, v, undefined, takeAddDate()); }
   else if (t.dataset.after){ const v = t.value; t.value = ''; addStep(lid, v, t.dataset.after); }
@@ -1729,6 +1796,18 @@ document.addEventListener('click', e => {
     case 'playvideo': openVideo(t.dataset.name, {path:t.dataset.path}); break;
     case 'playdrive': openVideo(t.dataset.name, {drive: driveId(t.dataset.url)}); break;
     case 'rins': { const box = t.closest('.hl-editor'), ta = box && box.querySelector('.hl-front'); if (ta) insertSnippet(ta, +t.dataset.i); break; }
+    case 'cmsend': sendNewComment(); break;
+    case 'cmreply': {
+      S.replyTo = t.dataset.cid; S.replyPrefill = t.dataset.isreply ? '@' + t.dataset.by + ' ' : ''; S.editComment = ''; sched();
+      setTimeout(() => { const ta = $app.querySelector(`[data-cmreply="${t.dataset.cid}"]`); if (ta){ ta.focus(); try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (_) {} } }, 80);
+      break;
+    }
+    case 'cmreplycancel': S.replyTo = ''; S.replyPrefill = ''; sched(); break;
+    case 'cmsendreply': sendReply(t.dataset.cid); break;
+    case 'cmedit': S.editComment = t.dataset.cid; S.replyTo = ''; sched(); break;
+    case 'cmcancel': S.editComment = ''; sched(); break;
+    case 'cmsave': saveCommentEdit(t.dataset.cid); break;
+    case 'cmdel': arm('cm' + t.dataset.cid, () => delComment(cmTarget(), t.dataset.cid)); break;
     case 'secnow': setSecDate(lid, t.dataset.sec, t.dataset.which, todayStr()); break;
     case 'dupe': openDuplicate(id); break;
     case 'dodupe': doDuplicate(id); break;

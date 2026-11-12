@@ -117,6 +117,12 @@ Every layout has three sections, shown as tabs: **Design**, **Fab** and **Result
   recipe's files) and click **Play video** to watch them in a pop-up player, as with images. Up to 25 MB each, so
   compress longer clips. MOV files may not play in every browser (convert to MP4). Videos are loaded in full before
   they play. A Google Drive link to a video can play inside the page too, if you have access to it in Drive.
+- **Comments and replies**: every layout has a **Comments** tab and every recipe a **Comments** section. Write a
+  comment (Ctrl+Enter sends), reply to any comment, and use `@name` to mention a teammate (it is highlighted, but
+  nobody is notified, since the site has no email). Web addresses become links. You can edit or delete your own
+  comments (deleting a comment also deletes the replies under it). People with view-only access can read comments
+  but not write them. The overview and recipe list show comment counts, and Latest updates lists new comments
+  and replies.
 - **Recipe library** (the **Recipes** tab at the top): save your process recipes once and reuse them.
   - Each recipe has a name, process (for example Etching), version, status (Active, Draft or Retired),
     equipment, and **parameters and procedure** (text with `- bullets`, `# headings`, `**bold**`).
