@@ -1,0 +1,21 @@
+{
+ "id": "ysnwzomwdhczj7",
+ "name": "Cleaning",
+ "process": "Prep",
+ "version": "1",
+ "status": "active",
+ "tools": "Solvent Hood",
+ "body": "1. 5 min 75C Acetone with ultrasound\n\n2. 5 min IPA with ultrasound\n\n3. DI water flow\n\n4. Blow dry\n\n5. Bake at 100C for 5 min\n\n6. Cool down.\n\nPiranha/ Nanostrip when possible. ",
+ "files": [],
+ "issues": [],
+ "history": [
+  {
+   "by": "Ratul-Paul",
+   "at": 1794483864547,
+   "note": "Created"
+  }
+ ],
+ "createdBy": "Ratul-Paul",
+ "createdAt": 1794483864547,
+ "updatedAt": 1794483864547
+}
