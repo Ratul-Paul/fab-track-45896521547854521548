@@ -2,7 +2,7 @@
  "id": "l4kckjmwdmcw2m",
  "name": "Bragg Grating Test With SiN HSQ 16% 200 nm Etch",
  "type": "passive",
- "status": "planned",
+ "status": "done",
  "purpose": "",
  "tags": [
   "Bragg Grating",
@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794492258142,
- "updatedAt": 1794492596769,
+ "updatedAt": 1794492614012,
  "dates": {
   "fab": {
    "start": "2026-10-29",
