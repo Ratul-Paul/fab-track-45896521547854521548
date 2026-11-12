@@ -1,6 +1,6 @@
 {
  "id": "jov1qgmwcguklb",
- "name": "HSQ 6%  Spin Coating 100 nm",
+ "name": "HSQ 6%  Spin Coating (100 nm)",
  "process": "Spin coating",
  "version": "1",
  "status": "active",
@@ -84,10 +84,15 @@
    "by": "Ratul-Paul",
    "at": 1794483903022,
    "note": "Edited name"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794484726687,
+   "note": "Edited name"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794422539199,
- "updatedAt": 1794484635855,
+ "updatedAt": 1794484726687,
  "comments": []
 }
