@@ -1,6 +1,6 @@
 {
  "id": "g79qrimwcp3zux",
- "name": "HSQ 16% Spin Coating 400 nm",
+ "name": "HSQ 16% Spin Coating (400 nm)",
  "process": "Spin coating",
  "version": "1",
  "status": "active",
@@ -63,10 +63,15 @@
    "by": "Ratul-Paul",
    "at": 1794484156411,
    "note": "Edited parameters"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794484719941,
+   "note": "Edited name"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794436415817,
- "updatedAt": 1794484156411,
+ "updatedAt": 1794484719941,
  "comments": []
 }
