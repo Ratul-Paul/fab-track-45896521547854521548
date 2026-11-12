@@ -13,8 +13,13 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794492654422,
- "updatedAt": 1794492695348,
- "dates": {},
+ "updatedAt": 1794492726962,
+ "dates": {
+  "design": {
+   "start": "2026-11-11",
+   "end": ""
+  }
+ },
  "steps": [
   {
    "id": "lq3m1emwdmldue",
