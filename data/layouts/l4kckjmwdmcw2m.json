@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794492258142,
- "updatedAt": 1794492427625,
+ "updatedAt": 1794492453718,
  "dates": {
   "fab": {
    "start": "2026-10-29",
@@ -116,7 +116,20 @@
    ]
   }
  ],
- "files": [],
+ "files": [
+  {
+   "id": "6px0lrmwdmh0s5",
+   "name": "250nm_HSQ_SiN_200etch_5000uCcm2.jpg",
+   "kind": "sem",
+   "stepId": "",
+   "source": "repo",
+   "path": "data/files/l4kckjmwdmcw2m/sem/6px0lrmwdmh0s5-250nm_HSQ_SiN_200etch_5000uCcm2.jpg",
+   "size": 4767927,
+   "note": "5000 uC/cm2 was used, so overdosed. Probably could have used 3600",
+   "by": "Ratul-Paul",
+   "at": 1794492453718
+  }
+ ],
  "results": [],
  "comments": []
 }
