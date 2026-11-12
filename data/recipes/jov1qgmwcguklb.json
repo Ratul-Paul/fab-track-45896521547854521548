@@ -6,7 +6,18 @@
  "status": "active",
  "tools": "",
  "body": "Spin coat:\n\n1. No spreading step \n2. 3000 rpm with 3000 acceleration\n3. Spin coat for 60 sec\n4. 0 rpm in 5 seconds\n\nBake:\n100 C for 1 min.\n\nDischarge:\n1. Cool down for 1 min\n2. Dispense Discharge H2O (make sure there is no bubble and cover the entire chip)\n3. No spreading step\n4. 3000 rpm with 5000 acceleration\n5. 0 rpm in 5 sec\n\nResults:\n100 nm after coating and 85 nm after baking \n",
- "files": [],
+ "files": [
+  {
+   "id": "oyytgomwdhtg8r",
+   "name": "20260804_100457.jpg",
+   "source": "repo",
+   "path": "data/files/recipes/jov1qgmwcguklb/oyytgomwdhtg8r-20260804_100457.jpg",
+   "size": 2206865,
+   "note": "",
+   "by": "Ratul-Paul",
+   "at": 1794484635855
+  }
+ ],
  "issues": [
   {
    "id": "2scakmmwchcd4h",
@@ -77,6 +88,6 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794422539199,
- "updatedAt": 1794483903022,
+ "updatedAt": 1794484635855,
  "comments": []
 }
