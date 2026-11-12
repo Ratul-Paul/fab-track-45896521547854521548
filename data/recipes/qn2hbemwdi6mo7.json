@@ -3,7 +3,7 @@
  "name": "EBL Patterning HSQ",
  "process": "EBL patterning",
  "version": "1",
- "status": "draft",
+ "status": "active",
  "tools": "Elionix ELS-S50EX",
  "body": "Dose: 3500 µC/cm²\nBeam current: 5 nA 120 aperture \nBeam step size: 3 nm - 4nm\nField size: 500um to 1000um\nField overlap: Depends on the component, usually 10-50um\nPEC: absolutely necessery. Mid range needs to be activated with Nue of 0.1\nField needs to be controlled for following line. \n\n",
  "files": [],
@@ -28,10 +28,15 @@
    "by": "Ratul-Paul",
    "at": 1794485317011,
    "note": "Edited parameters"
+  },
+  {
+   "by": "Ratul-Paul",
+   "at": 1794485372843,
+   "note": "Status set to active"
   }
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794485247559,
- "updatedAt": 1794485317011,
+ "updatedAt": 1794485372843,
  "comments": []
 }
