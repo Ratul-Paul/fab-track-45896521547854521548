@@ -10,7 +10,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794422351474,
- "updatedAt": 1794604853147,
+ "updatedAt": 1794604854276,
  "steps": [
   {
    "id": "4h64vomwfhe4eb",
@@ -36,16 +36,29 @@
   {
    "id": "tygl1dmwfhe6xn",
    "name": "Dicing",
-   "state": "pending",
+   "state": "pass",
    "note": "",
    "recipe": "",
    "recipeId": "",
    "days": "",
    "started": "",
    "issues": [],
-   "by": null,
-   "at": null,
-   "log": []
+   "by": "Ratul-Paul",
+   "at": 1794604854276,
+   "log": [
+    {
+     "by": "Ratul-Paul",
+     "at": 1794604854276,
+     "state": "pass",
+     "note": ""
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794604854276,
+     "state": "pass",
+     "note": ""
+    }
+   ]
   }
  ],
  "files": [],
