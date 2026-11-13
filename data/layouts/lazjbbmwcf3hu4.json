@@ -1,6 +1,6 @@
 {
  "id": "lazjbbmwcf3hu4",
- "name": "Full 5 MZI + Individual MZI + Electrode Distance Sweep",
+ "name": "Full 5 MZI + Individual MZI + Electrode Distance Sweep (IMSE)",
  "type": "active",
  "status": "infab",
  "purpose": "",
@@ -14,7 +14,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794419596300,
- "updatedAt": 1794421586486,
+ "updatedAt": 1794604934584,
  "steps": [
   {
    "id": "hmyb6gmwcf3hu4",
@@ -309,5 +309,6 @@
    "start": "2026-10-23",
    "end": "2026-10-26"
   }
- }
+ },
+ "comments": []
 }
