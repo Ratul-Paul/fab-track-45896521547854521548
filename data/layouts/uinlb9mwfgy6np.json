@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794604106293,
- "updatedAt": 1794604304618,
+ "updatedAt": 1794604553288,
  "dates": {
   "design": {
    "start": "2026-11-11",
@@ -54,20 +54,26 @@
    "id": "mpvdqsmwfgy6np",
    "name": "EBL patterning",
    "state": "pass",
-   "note": "",
+   "note": "3700uC/cm2 with 5nA current and 2 nm BSS. Results look good. ",
    "recipe": "EBL Patterning HSQ v1",
    "recipeId": "qn2hbemwdi6mo7",
    "days": "",
    "started": "",
    "issues": [],
    "by": "Ratul-Paul",
-   "at": 1794604151954,
+   "at": 1794604553288,
    "log": [
     {
      "by": "Ratul-Paul",
      "at": 1794604151954,
      "state": "pass",
      "note": ""
+    },
+    {
+     "by": "Ratul-Paul",
+     "at": 1794604553288,
+     "state": "pass",
+     "note": "3700uC/cm2 with 5nA current and 2 nm BSS. Results look good. "
     }
    ]
   },
