@@ -10,8 +10,23 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794422351474,
- "updatedAt": 1794604834436,
- "steps": [],
+ "updatedAt": 1794604849859,
+ "steps": [
+  {
+   "id": "4h64vomwfhe4eb",
+   "name": "Deep trench etching",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "recipeId": "",
+   "days": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  }
+ ],
  "files": [],
  "results": [],
  "dates": {
