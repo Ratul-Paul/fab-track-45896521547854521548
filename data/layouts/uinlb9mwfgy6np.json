@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794604106293,
- "updatedAt": 1794604106293,
+ "updatedAt": 1794604135029,
  "dates": {},
  "steps": [
   {
@@ -73,6 +73,20 @@
    "log": []
   }
  ],
- "files": [],
- "results": []
+ "files": [
+  {
+   "id": "30nh2wmwfgyoxv",
+   "name": "in_house_WBG_slab_SiN_1111126.gds",
+   "kind": "gds",
+   "stepId": "",
+   "source": "repo",
+   "path": "data/files/uinlb9mwfgy6np/gds/30nh2wmwfgyoxv-in_house_WBG_slab_SiN_1111126.gds",
+   "size": 8814592,
+   "note": "",
+   "by": "Ratul-Paul",
+   "at": 1794604135029
+  }
+ ],
+ "results": [],
+ "comments": []
 }
