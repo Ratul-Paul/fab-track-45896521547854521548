@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794604106293,
- "updatedAt": 1794604145605,
+ "updatedAt": 1794604150760,
  "dates": {
   "design": {
    "start": "2026-11-11",
@@ -24,16 +24,23 @@
   {
    "id": "amcvrjmwfgy6np",
    "name": "Spin coating",
-   "state": "pending",
+   "state": "pass",
    "note": "",
    "recipe": "HSQ 16% Spin Coating (400 nm) v1",
    "recipeId": "g79qrimwcp3zux",
    "days": "",
    "started": "",
    "issues": [],
-   "by": null,
-   "at": null,
-   "log": []
+   "by": "Ratul-Paul",
+   "at": 1794604150760,
+   "log": [
+    {
+     "by": "Ratul-Paul",
+     "at": 1794604150760,
+     "state": "pass",
+     "note": ""
+    }
+   ]
   },
   {
    "id": "mpvdqsmwfgy6np",
