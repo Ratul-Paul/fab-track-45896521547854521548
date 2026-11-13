@@ -2,7 +2,7 @@
  "id": "0wgkm4mwcgqjqq",
  "name": "Full 5 MZI Laser LN Fabricated at UPenn",
  "type": "active",
- "status": "done",
+ "status": "measuring",
  "purpose": "",
  "tags": [],
  "workers": [
@@ -10,7 +10,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794422351474,
- "updatedAt": 1794604856311,
+ "updatedAt": 1794604889837,
  "steps": [
   {
    "id": "4h64vomwfhe4eb",
