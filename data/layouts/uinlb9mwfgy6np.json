@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794604106293,
- "updatedAt": 1794604156743,
+ "updatedAt": 1794604192347,
  "dates": {
   "design": {
    "start": "2026-11-11",
@@ -118,6 +118,18 @@
    "note": "",
    "by": "Ratul-Paul",
    "at": 1794604135029
+  },
+  {
+   "id": "2jpu6qmwfgzyty",
+   "name": "hsq_4000rpm_3700uc_1min_az400k_v2_1.jpg",
+   "kind": "sem",
+   "stepId": "8plct1mwfgy6np",
+   "source": "repo",
+   "path": "data/files/uinlb9mwfgy6np/sem/2jpu6qmwfgzyty-hsq_4000rpm_3700uc_1min_az400k_v2_1.jpg",
+   "size": 1031872,
+   "note": "",
+   "by": "Ratul-Paul",
+   "at": 1794604192347
   }
  ],
  "results": [],
