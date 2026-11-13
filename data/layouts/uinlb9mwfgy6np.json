@@ -1,0 +1,78 @@
+{
+ "id": "uinlb9mwfgy6np",
+ "name": "Copy of Bragg Grating Test With SiN HSQ 16% 200 nm Etch",
+ "type": "passive",
+ "status": "planned",
+ "purpose": "",
+ "tags": [
+  "Bragg Grating",
+  "Cleaved"
+ ],
+ "workers": [
+  "Ratul-Paul"
+ ],
+ "createdBy": "Ratul-Paul",
+ "createdAt": 1794604106293,
+ "updatedAt": 1794604106293,
+ "dates": {},
+ "steps": [
+  {
+   "id": "amcvrjmwfgy6np",
+   "name": "Spin coating",
+   "state": "pending",
+   "note": "",
+   "recipe": "HSQ 16% Spin Coating (400 nm) v1",
+   "recipeId": "g79qrimwcp3zux",
+   "days": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "mpvdqsmwfgy6np",
+   "name": "EBL patterning",
+   "state": "pending",
+   "note": "",
+   "recipe": "EBL Patterning HSQ v1",
+   "recipeId": "qn2hbemwdi6mo7",
+   "days": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "8plct1mwfgy6np",
+   "name": "Etching",
+   "state": "pending",
+   "note": "",
+   "recipe": "Silicon Nitride Etch v1",
+   "recipeId": "clsmzymwdjhmw3",
+   "days": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  },
+  {
+   "id": "dpon6nmwfgy6np",
+   "name": "HSQ Stripping with BOE",
+   "state": "pending",
+   "note": "",
+   "recipe": "",
+   "recipeId": "",
+   "days": "",
+   "started": "",
+   "issues": [],
+   "by": null,
+   "at": null,
+   "log": []
+  }
+ ],
+ "files": [],
+ "results": []
+}
