@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794604106293,
- "updatedAt": 1794604284315,
+ "updatedAt": 1794604288207,
  "dates": {
   "design": {
    "start": "2026-11-11",
@@ -21,7 +21,7 @@
   },
   "fab": {
    "start": "2026-11-11",
-   "end": ""
+   "end": "2026-11-12"
   }
  },
  "steps": [
