@@ -13,7 +13,7 @@
  ],
  "createdBy": "Ratul-Paul",
  "createdAt": 1794604106293,
- "updatedAt": 1794604192347,
+ "updatedAt": 1794604219719,
  "dates": {
   "design": {
    "start": "2026-11-11",
@@ -130,6 +130,18 @@
    "note": "",
    "by": "Ratul-Paul",
    "at": 1794604192347
+  },
+  {
+   "id": "ucttn7mwfh0ju8",
+   "name": "bg_siN_imse_trial_4.jpg",
+   "kind": "sem",
+   "stepId": "8plct1mwfgy6np",
+   "source": "repo",
+   "path": "data/files/uinlb9mwfgy6np/sem/ucttn7mwfh0ju8-bg_siN_imse_trial_4.jpg",
+   "size": 3636683,
+   "note": "",
+   "by": "Ratul-Paul",
+   "at": 1794604219719
   }
  ],
  "results": [],
